@@ -1,0 +1,25 @@
+import { OperationBox } from "@/app/components/OperationBox";
+import { sendGroupSmsPeerToPeerApiSpec } from "./api-spec";
+
+# ارسال گروهی پیامک نظیر به نظیر
+
+<div className="operation-hero">
+  <div className="operation-hero__text">
+    <p>
+      از این متد برای ارسال پیامک به صورت گروهی با متون مختلف و شماره فرستندگان و گیرندگان مختلف
+      استفاده می‌شود.
+    </p>
+  </div>
+
+  <OperationBox
+    method="POST"
+    endpoint="https://gateway.ghasedak.me/rest/api/v1/WebService/SendPairToPairSMS"
+  />
+</div>
+
+<ScalarApiReference spec={sendGroupSmsPeerToPeerApiSpec} />
+
+## جدول خطاها
+
+چنانچه درخواست‌های ارسالی شما با خطای خاصی مواجه شد، برای آگاهی از دلایل آن می‌توانید از [جدول خطاها](/error-table) کمک بگیرید.
+

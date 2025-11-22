@@ -1,0 +1,32 @@
+import { ScalarApiReference } from "@/app/components/ScalarApiReference";
+import { OperationBox } from "@/app/components/OperationBox";
+import { sendOtpApiSpec } from "./api-spec";
+
+# ارسال پیامک اعتبار سنجی (OTP)
+
+<div className="operation-hero">
+  <div className="operation-hero__text">
+    <p>
+      سرویس اعتبارسنجی به شما این امکان را می‌دهد که بدون نیاز به داشتن خط خدماتی و طی کردن پروسه
+      زمان‌بر تهیه آن بتوانید از طریق وب سرویس به راحتی و بالاترین سرعت ممکن پیام‌های خود مانند: کد
+      فعال‌سازی، شماره چک و فاکتور، کد قرعه‌کشی و... را به تمامی کاربران اعم از فیلتر و غیر فیلتر
+      ارسال نمایید. در متن قالب نام برند، شرکت و یا خدمات خود را حتما ذکر نمایید و حداقل حاوی یک
+      پارامتر `%param1%` باشد. حداکثر از ۱۰ پارامتر `%param1%`، `%param2%`، ...، `%param10%`
+      می‌توان استفاده کرد.
+    </p>
+  </div>
+
+  <OperationBox
+    method="POST"
+    endpoint="https://gateway.ghasedak.me/rest/api/v1/WebService/SendOtpWithParams"
+  />
+</div>
+
+<div key="scalar-send-otp">
+  <ScalarApiReference spec={sendOtpApiSpec} />
+</div>
+
+## جدول خطاها
+
+چنانچه درخواست‌های ارسالی شما با خطای خاصی مواجه شد، برای آگاهی از دلایل آن می‌توانید از [جدول خطاها](/error-table) کمک بگیرید.
+

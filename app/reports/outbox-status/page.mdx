@@ -1,0 +1,41 @@
+import { ScalarApiReference } from "@/app/components/ScalarApiReference";
+import { OperationBox } from "@/app/components/OperationBox";
+import { outboxStatusApiSpec } from "./api-spec";
+
+# وضعیت پیام های ارسالی
+
+<div className="operation-hero">
+  <div className="operation-hero__text">
+    <p>برای بررسی وضعیت پیامک‌های ارسالی به گیرندگان، می‌توانید از این متد استفاده کنید. با هر بار فراخوانی این متد، امکان دریافت وضعیت ۱۰۰ پیامک وجود دارد. همچنین می‌توانید گزارش وضعیت پیام‌ها را بر اساس شناسه پیامک قاصدک یا شناسه محلی خود دریافت کنید.</p>
+  </div>
+
+  <OperationBox
+    method="GET"
+    endpoint="https://gateway.ghasedak.me/rest/api/v1/WebService/CheckSmsStatus"
+  />
+</div>
+
+<div key="scalar-outbox-status">
+  <ScalarApiReference spec={outboxStatusApiSpec} />
+</div>
+
+## توضیحات کد وضعیت
+
+جدول زیر توضیحات کدهای مختلف وضعیت پیام را نشان می‌دهد:
+
+| کد وضعیت | توضیحات |
+|---------|---------|
+| 0 | بدون وضعیت |
+| 1 | لغو شده |
+| 2 | بلک لیست |
+| 3 | تحویل به اپراتور |
+| 4 | به گوشی نرسیده |
+| 5 | رسیده به گوشی |
+| 6 | ارسال با خطا |
+| 7 | حالت خطایابی |
+| 8 | نامشخص |
+
+## جدول خطاها
+
+چنانچه درخواست‌های ارسالی شما با خطای خاصی مواجه شد، برای آگاهی از دلایل آن می‌توانید از [جدول خطاها](/error-table) کمک بگیرید.
+

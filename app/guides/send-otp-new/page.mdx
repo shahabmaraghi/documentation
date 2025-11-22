@@ -1,0 +1,25 @@
+import { ScalarApiReference } from "@/app/components/ScalarApiReference";
+import { OperationBox } from "@/app/components/OperationBox";
+import { sendOtpSmsNewApiSpec } from "./api-spec";
+
+# ارسال پیامک OTP جدید
+
+<div className="operation-hero">
+  <div className="operation-hero__text">
+    <p>از این متد برای ارسال پیامک OTP با استفاده از قالب‌های از پیش تعریف شده استفاده می‌شود. این متد امکانات پیشرفته‌تری نسبت به متد قبلی ارائه می‌دهد.</p>
+  </div>
+
+  <OperationBox
+    method="POST"
+    endpoint="https://gateway.ghasedak.me/rest/api/v1/WebService/SendOtpSMS"
+  />
+</div>
+
+<div key="scalar-send-otp-new">
+  <ScalarApiReference spec={sendOtpSmsNewApiSpec} />
+</div>
+
+## جدول خطاها
+
+چنانچه درخواست‌های ارسالی شما با خطای خاصی مواجه شد، برای آگاهی از دلایل آن می‌توانید از [جدول خطاها](/error-table) کمک بگیرید.
+

@@ -1,0 +1,21 @@
+{
+  "setup": {
+    "title": "Local Setup"
+  },
+  "deployment": {
+    "title": "Deployment Workflow"
+  },
+  "sendOtpSms": {
+    "title": "Send OTP SMS"
+  },
+  "sendSingleSms": {
+    "title": "Send Single SMS"
+  },
+  "send-bulk": {
+    "title": "Send Bulk SMS"
+  },
+  "send-bulk-peer-to-peer": {
+    "title": "Send Group SMS Peer to Peer"
+  }
+}
+

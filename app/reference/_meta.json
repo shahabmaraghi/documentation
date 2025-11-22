@@ -1,0 +1,12 @@
+{
+  "configuration": {
+    "title": "Configuration"
+  },
+  "cli": {
+    "title": "CLI Commands"
+  },
+  "release-notes": {
+    "title": "Release Notes"
+  }
+}
+

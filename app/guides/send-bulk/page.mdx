@@ -1,0 +1,26 @@
+import { OperationBox } from "@/app/components/OperationBox";
+import { sendBulkApiSpec } from "./api-spec";
+
+# ارسال پیامک گروهی
+
+<div className="operation-hero">
+  <div className="operation-hero__text">
+    <p>
+      از این متد برای ارسال پیامک گروهی به گیرندگان مختلف استفاده می شود. به این صورت که شماره
+      فرستنده و متن پیام فقط یک شماره می تواند باشد و نیازی نیست به ازای هر گیرنده، یک شماره
+      فرستنده وارد گردد.
+    </p>
+  </div>
+
+  <OperationBox
+    method="POST"
+    endpoint="https://gateway.ghasedak.me/rest/api/v1/WebService/SendBulkSMS"
+  />
+</div>
+
+<ScalarApiReference spec={sendBulkApiSpec} />
+
+## جدول خطاها
+
+چنانچه درخواست‌های ارسالی شما با خطای خاصی مواجه شد، برای آگاهی از دلایل آن می‌توانید از [جدول خطاها](/error-table) کمک بگیرید.
+

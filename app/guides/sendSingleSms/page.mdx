@@ -1,0 +1,361 @@
+import { OperationBox } from "../components/OperationBox";
+
+# ارسال تکی 
+
+<div className="operation-hero">
+  <div className="operation-hero__text">
+    <p>از این متد برای ارسال پیامک به صورت تکی استفاده می شود.</p>
+  </div>
+
+  <OperationBox
+    method="POST"
+    endpoint="https://gateway.ghasedak.me/rest/api/v1/WebService/SendSingleSms"
+  >
+    <CodeTabs
+      labels={[
+        "curl",
+        "C#",
+        "PHP",
+        "Java",
+        "Node.js",
+        "Python",
+        "Go",
+      ]}
+    >
+      <div>
+
+```bash
+curl -X 'POST' \
+  'https://gateway.ghasedak.me/rest/api/v1/WebService/SendSingleSms' \
+  -H 'accept: text/plain' \
+  -H 'ApiKey: "your-apiKey' \
+  --data '{
+    "receptors": [
+    {
+    "mobile": "0937****",
+    "clientReferenceId": "1"
+    }
+    ],
+    "message": "سلام، این یک پیامک تستی است.",
+    "lineNumber": "10008566",
+    "checkId": 0
+    }'
+```
+
+      </div>
+      <div>
+
+```csharp
+using System;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
+using Newtonsoft.Json;
+
+public class Receptor
+{
+    public string Mobile { get; set; }
+    public string ClientReferenceId { get; set; }
+}
+
+public class SmsRequest
+{
+    public long Date { get; set; }
+    public Receptor[] Receptors { get; set; }
+    public string Message { get; set; }
+    public string LineNumber { get; set; }
+    public int CheckId { get; set; }
+}
+
+public class Program
+{
+    public static async Task Main(string[] args)
+    {
+        var client = new HttpClient();
+        client.DefaultRequestHeaders.Add("ApiKey", "your-apiKey");
+        var request = new HttpRequestMessage(HttpMethod.Post, "https://gateway.ghasedak.me/rest/api/v1/WebService/SendSingleSms");
+
+        var smsRequest = new SmsRequest
+        {
+            Date = 0,
+            Receptors = new[]
+            {
+                new Receptor
+                {
+                    Mobile = "string",
+                    ClientReferenceId = "string"
+                }
+            },
+            Message = "string",
+            LineNumber = "string",
+            CheckId = 0
+        };
+
+        var json = JsonConvert.SerializeObject(smsRequest);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+        request.Content = content;
+
+        var response = await client.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+        Console.WriteLine(await response.Content.ReadAsStringAsync());
+    }
+}
+```
+
+      </div>
+      <div>
+
+```php
+<?php
+
+$curl = curl_init();
+
+curl_setopt_array($curl, array(
+  CURLOPT_URL => 'https://gateway.ghasedak.me/rest/api/v1/WebService/SendSingleSms',
+  CURLOPT_RETURNTRANSFER => true,
+  CURLOPT_ENCODING => '',
+  CURLOPT_MAXREDIRS => 10,
+  CURLOPT_TIMEOUT => 0,
+  CURLOPT_FOLLOWLOCATION => true,
+  CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+  CURLOPT_CUSTOMREQUEST => 'POST',
+  CURLOPT_POSTFIELDS =>'{
+  "date": 0,
+  "receptors": [
+    {
+      "mobile": "string",
+      "clientReferenceId": "string"
+    }
+  ],
+  "message": "سلام، این یک پیامک تستی است.",
+  "lineNumber": "10008566",
+  "checkId": 0
+}',
+  CURLOPT_HTTPHEADER => array(
+    'Content-Type: application/json',
+    'ApiKey: "your-apiKey'
+  ),
+));
+
+$response = curl_exec($curl);
+
+curl_close($curl);
+echo $response;
+```
+
+      </div>
+      <div>
+
+```java
+import com.google.gson.Gson;
+import okhttp3.*;
+
+import java.io.IOException;
+
+class Receptor {
+    private String mobile;
+    private String clientReferenceId;
+
+    public Receptor(String mobile, String clientReferenceId) {
+        this.mobile = mobile;
+        this.clientReferenceId = clientReferenceId;
+    }
+}
+
+class SmsRequest {
+    private long date;
+    private Receptor[] receptors;
+    private String message;
+    private String lineNumber;
+    private int checkId;
+
+    public SmsRequest(long date, Receptor[] receptors, String message, String lineNumber, int checkId) {
+        this.date = date;
+        this.receptors = receptors;
+        this.message = message;
+        this.lineNumber = lineNumber;
+        this.checkId = checkId;
+    }
+}
+
+public class Main {
+    public static void main(String[] args) throws IOException {
+        OkHttpClient client = new OkHttpClient();
+
+        Receptor[] receptors = { new Receptor("string", "string") };
+
+        SmsRequest smsRequest = new SmsRequest(
+                0,
+                receptors,
+                "string",
+                "string",
+                0
+        );
+
+        Gson gson = new Gson();
+        String json = gson.toJson(smsRequest);
+
+        RequestBody body = RequestBody.create(json, MediaType.parse("application/json"));
+
+        Request request = new Request.Builder()
+                .url("https://gateway.ghasedak.me/rest/api/v1/WebService/SendSingleSms")
+                .post(body)
+                .addHeader("Content-Type", "application/json")
+                .addHeader("ApiKey", "your-apiKey")
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
+            System.out.println(response.body().string());
+        }
+    }
+}
+```
+
+      </div>
+      <div>
+
+```javascript
+var request = require('request');
+var options = {
+  method: 'POST',
+  url: 'https://gateway.ghasedak.me/rest/api/v1/WebService/SendSingleSms',
+  headers: {
+    'Content-Type': 'application/json',
+    'ApiKey: "your-apiKey'
+  },
+  body: JSON.stringify({
+    "date": 0,
+    "receptors": [
+      {
+        "mobile": "string",
+        "clientReferenceId": "string"
+      }
+    ],
+    "message": "سلام، این یک پیامک تستی است.",
+    "lineNumber": "10008566",
+    "checkId": 0
+  })
+
+};
+request(options, function (error, response) {
+  if (error) throw new Error(error);
+  console.log(response.body);
+});
+```
+
+      </div>
+      <div>
+
+```python
+import requests
+import json
+
+url = "https://gateway.ghasedak.me/rest/api/v1/WebService/SendSingleSms"
+
+payload = json.dumps({
+  "date": 0,
+  "receptors": [
+    {
+      "mobile": "string",
+      "clientReferenceId": "string"
+    }
+  ],
+  "message": "سلام، این یک پیامک تستی است.",
+  "lineNumber": "10008566",
+  "checkId": 0
+})
+headers = {
+  'Content-Type': 'application/json',
+  'ApiKey: "your-apiKey'
+}
+
+response = requests.request("POST", url, headers=headers, data=payload)
+
+print(response.text)
+```
+
+      </div>
+      <div>
+
+```go
+package main
+
+import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"io/ioutil"
+)
+
+type Receptor struct {
+	Mobile            string `json:"mobile"`
+	ClientReferenceId string `json:"clientReferenceId"`
+}
+
+type SmsRequest struct {
+	Date        int        `json:"date"`
+	Receptors   []Receptor `json:"receptors"`
+	Message     string     `json:"message"`
+	LineNumber  string     `json:"lineNumber"`
+	CheckId     int        `json:"checkId"`
+}
+
+func main() {
+	url := "https://gateway.ghasedak.me/rest/api/v1/WebService/SendSingleSms"
+
+	smsRequest := SmsRequest{
+		Date: 0,
+		Receptors: []Receptor{
+			{
+				Mobile:            "string",
+				ClientReferenceId: "string",
+			},
+		},
+		Message:    "string",
+		LineNumber: "string",
+		CheckId:    0,
+	}
+
+	jsonData, err := json.Marshal(smsRequest)
+	if err != nil {
+		fmt.Println("Error marshalling JSON:", err)
+		return
+	}
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+	if err != nil {
+		fmt.Println("Error creating request:", err)
+		return
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("ApiKey", "your-apiKey")
+
+	client := &http.Client{}
+	res, err := client.Do(req)
+	if err != nil {
+		fmt.Println("Error sending request:", err)
+		return
+	}
+	defer res.Body.Close()
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		fmt.Println("Error reading response:", err)
+		return
+	}
+	fmt.Println(string(body))
+}
+```
+
+      </div>
+    </CodeTabs>
+  </OperationBox>
+</div>
+
+## جدول خطاها
+
+چنانچه درخواست‌های ارسالی شما با خطای خاصی مواجه شد، برای آگاهی از دلایل آن می‌توانید از [جدول خطاها](/error-table) کمک بگیرید.
+
+

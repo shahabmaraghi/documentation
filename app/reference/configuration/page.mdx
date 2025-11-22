@@ -1,0 +1,40 @@
+# Configuration Reference
+
+Fine-tune the documentation site by adjusting these key files.
+
+## `next.config.ts`
+
+- Nextra is enabled via `export default withNextra({})`.
+- Add additional Next.js options inside the `withNextra({ ...nextConfig })` call when needed.
+
+## `theme.config.jsx`
+
+```tsx
+export default {
+  logo: <span>🚀 My Project Docs</span>,
+  project: {
+    link: 'https://github.com/yourusername/your-repo',
+  },
+  docsRepositoryBase: 'https://github.com/yourusername/your-repo/tree/main',
+  footer: {
+    text: '© 2025 My Project. All rights reserved.',
+  },
+}
+```
+
+- Update the `project.link` to point to your repository.
+- Customize the `logo` and `footer.text` to match your brand.
+
+## Sidebar structure
+
+Edit `_meta.json` files to control ordering and visibility. Common properties:
+
+- `title`: Display label in the sidebar.
+- `display: "hidden"`: Hide a page from navigation.
+- `display: "children"`: Hide a section heading while keeping its children visible.
+- `type: "menu"`: Create a custom menu with explicit items.
+
+## Environment variables
+
+Use `.env.local` for secrets needed in the docs (API keys, analytics tokens). Prefix public values with `NEXT_PUBLIC_` so they can be read in the browser.
+

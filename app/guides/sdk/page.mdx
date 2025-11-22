@@ -1,0 +1,817 @@
+import { CodeTabs } from "@/app/components/CodeTabs";
+
+# کتابخانه‌ها و SDK
+
+<div className="operation-hero">
+  <div className="operation-hero__text">
+    <p>
+      برای راحتی کار شما، کتابخانه‌های آماده برای زبان‌های برنامه‌نویسی مختلف فراهم کرده‌ایم.
+      با استفاده از این SDKها می‌توانید به راحتی با API قاصدک ارتباط برقرار کنید.
+    </p>
+  </div>
+</div>
+
+## نصب و راه‌اندازی
+
+برای استفاده از کتابخانه‌های قاصدک، ابتدا باید آن‌ها را در پروژه خود نصب کنید.
+در زیر دستورات نصب برای هر زبان آورده شده است:
+
+<CodeTabs labels={["PHP", "Node.js", "Python", "C#", ".NET Core", "Java", "Go"]}>
+
+```bash
+# نصب از طریق Composer
+composer require ghasedak/php
+```
+
+```bash
+# نصب از طریق npm
+npm install ghasedak
+
+# یا با yarn
+yarn add ghasedak
+```
+
+```bash
+# نصب از طریق pip
+pip install ghasedak
+
+# یا با pip3
+pip3 install ghasedak
+```
+
+```bash
+# نصب از طریق NuGet Package Manager
+Install-Package Ghasedak
+
+# یا با .NET CLI
+dotnet add package Ghasedak
+```
+
+```bash
+# نصب از طریق .NET CLI
+dotnet add package Ghasedak.Core
+
+# یا اضافه کردن به .csproj
+<PackageReference Include="Ghasedak.Core" Version="1.0.0" />
+```
+
+```xml
+<!-- اضافه کردن به pom.xml -->
+<dependency>
+    <groupId>io.github.ghasedak</groupId>
+    <artifactId>ghasedak-java</artifactId>
+    <version>1.0.0</version>
+</dependency>
+```
+
+```bash
+# نصب از طریق go get
+go get github.com/ghasedak/ghasedak-go
+```
+
+</CodeTabs>
+
+## راه‌اندازی اولیه
+
+پس از نصب کتابخانه، باید API Key خود را تنظیم کنید:
+
+<CodeTabs labels={["PHP", "Node.js", "Python", "C#", ".NET Core", "Java", "Go"]}>
+
+```php
+<?php
+require 'vendor/autoload.php';
+
+use Ghasedak\GhasedakApi;
+
+$api = new GhasedakApi('YOUR_API_KEY');
+```
+
+```javascript
+const Ghasedak = require('ghasedak');
+
+const api = new Ghasedak('YOUR_API_KEY');
+```
+
+```python
+from ghasedak import Ghasedak
+
+sms = Ghasedak("YOUR_API_KEY")
+```
+
+```csharp
+using Ghasedak;
+
+var api = new GhasedakApi("YOUR_API_KEY");
+```
+
+```csharp
+using Ghasedak.Core;
+using Microsoft.Extensions.DependencyInjection;
+
+// در Startup.cs یا Program.cs
+services.AddGhasedak(options =>
+{
+    options.ApiKey = "YOUR_API_KEY";
+});
+
+// استفاده در Controller یا Service
+public class SmsService
+{
+    private readonly IGhasedakApi _api;
+    
+    public SmsService(IGhasedakApi api)
+    {
+        _api = api;
+    }
+}
+```
+
+```java
+import io.github.ghasedak.GhasedakApi;
+
+GhasedakApi api = new GhasedakApi("YOUR_API_KEY");
+```
+
+```go
+package main
+
+import (
+    "github.com/ghasedak/ghasedak-go"
+)
+
+func main() {
+    api := ghasedak.NewApi("YOUR_API_KEY")
+}
+```
+
+</CodeTabs>
+
+## ارسال پیامک تکی
+
+برای ارسال یک پیامک به یک شماره:
+
+<CodeTabs labels={["PHP", "Node.js", "Python", "C#", ".NET Core", "Java", "Go"]}>
+
+```php
+<?php
+$receptor = "09123456789";
+$message = "سلام، این یک پیام تستی است";
+$linenumber = ""; // خط خدماتی - اختیاری
+
+try {
+    $result = $api->SendSimple(
+        $receptor,
+        $message,
+        $linenumber
+    );
+    
+    echo "پیام با موفقیت ارسال شد";
+    print_r($result);
+} catch (Exception $e) {
+    echo "خطا: " . $e->getMessage();
+}
+```
+
+```javascript
+const receptor = '09123456789';
+const message = 'سلام، این یک پیام تستی است';
+const linenumber = ''; // خط خدماتی - اختیاری
+
+api.sendSimple({
+  receptor,
+  message,
+  linenumber
+})
+.then(response => {
+  console.log('پیام با موفقیت ارسال شد');
+  console.log(response);
+})
+.catch(error => {
+  console.error('خطا:', error);
+});
+```
+
+```python
+receptor = "09123456789"
+message = "سلام، این یک پیام تستی است"
+linenumber = ""  # خط خدماتی - اختیاری
+
+try:
+    result = sms.send_simple(
+        receptor=receptor,
+        message=message,
+        linenumber=linenumber
+    )
+    
+    print("پیام با موفقیت ارسال شد")
+    print(result)
+except Exception as e:
+    print(f"خطا: {str(e)}")
+```
+
+```csharp
+var receptor = "09123456789";
+var message = "سلام، این یک پیام تستی است";
+var linenumber = ""; // خط خدماتی - اختیاری
+
+try
+{
+    var result = await api.SendSimpleAsync(
+        receptor,
+        message,
+        linenumber
+    );
+    
+    Console.WriteLine("پیام با موفقیت ارسال شد");
+    Console.WriteLine(result);
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"خطا: {ex.Message}");
+}
+```
+
+```csharp
+// استفاده با Dependency Injection
+public class SmsController : ControllerBase
+{
+    private readonly IGhasedakApi _api;
+    
+    public SmsController(IGhasedakApi api)
+    {
+        _api = api;
+    }
+    
+    [HttpPost("send")]
+    public async Task<IActionResult> SendSms()
+    {
+        var receptor = "09123456789";
+        var message = "سلام، این یک پیام تستی است";
+        var linenumber = ""; // خط خدماتی - اختیاری
+        
+        try
+        {
+            var result = await _api.SendSimpleAsync(
+                receptor,
+                message,
+                linenumber
+            );
+            
+            return Ok(new { 
+                success = true, 
+                message = "پیام با موفقیت ارسال شد",
+                data = result 
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { 
+                success = false, 
+                message = $"خطا: {ex.Message}" 
+            });
+        }
+    }
+}
+```
+
+```java
+String receptor = "09123456789";
+String message = "سلام، این یک پیام تستی است";
+String linenumber = ""; // خط خدماتی - اختیاری
+
+try {
+    SendResult result = api.sendSimple(
+        receptor,
+        message,
+        linenumber
+    );
+    
+    System.out.println("پیام با موفقیت ارسال شد");
+    System.out.println(result);
+} catch (Exception e) {
+    System.out.println("خطا: " + e.getMessage());
+}
+```
+
+```go
+receptor := "09123456789"
+message := "سلام، این یک پیام تستی است"
+linenumber := "" // خط خدماتی - اختیاری
+
+result, err := api.SendSimple(
+    receptor,
+    message,
+    linenumber,
+)
+
+if err != nil {
+    fmt.Printf("خطا: %v\n", err)
+    return
+}
+
+fmt.Println("پیام با موفقیت ارسال شد")
+fmt.Println(result)
+```
+
+</CodeTabs>
+
+## ارسال پیامک گروهی
+
+برای ارسال پیامک به چندین شماره به صورت همزمان:
+
+<CodeTabs labels={["PHP", "Node.js", "Python", "C#", ".NET Core", "Java", "Go"]}>
+
+```php
+<?php
+$receptors = ["09123456789", "09121111111", "09122222222"];
+$message = "سلام، این یک پیام گروهی است";
+$linenumber = "";
+
+try {
+    $result = $api->SendBulk(
+        $receptors,
+        $message,
+        $linenumber
+    );
+    
+    echo "پیام‌ها با موفقیت ارسال شدند";
+    print_r($result);
+} catch (Exception $e) {
+    echo "خطا: " . $e->getMessage();
+}
+```
+
+```javascript
+const receptors = ['09123456789', '09121111111', '09122222222'];
+const message = 'سلام، این یک پیام گروهی است';
+const linenumber = '';
+
+api.sendBulk({
+  receptor: receptors,
+  message,
+  linenumber
+})
+.then(response => {
+  console.log('پیام‌ها با موفقیت ارسال شدند');
+  console.log(response);
+})
+.catch(error => {
+  console.error('خطا:', error);
+});
+```
+
+```python
+receptors = ["09123456789", "09121111111", "09122222222"]
+message = "سلام، این یک پیام گروهی است"
+linenumber = ""
+
+try:
+    result = sms.send_bulk(
+        receptor=receptors,
+        message=message,
+        linenumber=linenumber
+    )
+    
+    print("پیام‌ها با موفقیت ارسال شدند")
+    print(result)
+except Exception as e:
+    print(f"خطا: {str(e)}")
+```
+
+```csharp
+var receptors = new[] { "09123456789", "09121111111", "09122222222" };
+var message = "سلام، این یک پیام گروهی است";
+var linenumber = "";
+
+try
+{
+    var result = await api.SendBulkAsync(
+        receptors,
+        message,
+        linenumber
+    );
+    
+    Console.WriteLine("پیام‌ها با موفقیت ارسال شدند");
+    Console.WriteLine(result);
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"خطا: {ex.Message}");
+}
+```
+
+```csharp
+// استفاده در .NET Core با DI
+public async Task<SendBulkResponse> SendBulkSmsAsync(
+    List<string> receptors)
+{
+    var message = "سلام، این یک پیام گروهی است";
+    var linenumber = "";
+    
+    try
+    {
+        var result = await _api.SendBulkAsync(
+            receptors.ToArray(),
+            message,
+            linenumber
+        );
+        
+        _logger.LogInformation("پیام‌ها با موفقیت ارسال شدند");
+        return result;
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "خطا در ارسال پیام گروهی");
+        throw;
+    }
+}
+```
+
+```java
+String[] receptors = {"09123456789", "09121111111", "09122222222"};
+String message = "سلام، این یک پیام گروهی است";
+String linenumber = "";
+
+try {
+    SendResult result = api.sendBulk(
+        receptors,
+        message,
+        linenumber
+    );
+    
+    System.out.println("پیام‌ها با موفقیت ارسال شدند");
+    System.out.println(result);
+} catch (Exception e) {
+    System.out.println("خطا: " + e.getMessage());
+}
+```
+
+```go
+receptors := []string{"09123456789", "09121111111", "09122222222"}
+message := "سلام، این یک پیام گروهی است"
+linenumber := ""
+
+result, err := api.SendBulk(
+    receptors,
+    message,
+    linenumber,
+)
+
+if err != nil {
+    fmt.Printf("خطا: %v\n", err)
+    return
+}
+
+fmt.Println("پیام‌ها با موفقیت ارسال شدند")
+fmt.Println(result)
+```
+
+</CodeTabs>
+
+## ارسال پیامک OTP
+
+برای ارسال کد تأیید (OTP) با استفاده از قالب:
+
+<CodeTabs labels={["PHP", "Node.js", "Python", "C#", ".NET Core", "Java", "Go"]}>
+
+```php
+<?php
+$receptor = "09123456789";
+$templateName = "otp-template";
+$param1 = "12345"; // کد تأیید
+$param2 = ""; // پارامتر دوم - اختیاری
+$param3 = ""; // پارامتر سوم - اختیاری
+
+try {
+    $result = $api->Verify(
+        $receptor,
+        $templateName,
+        $param1,
+        $param2,
+        $param3
+    );
+    
+    echo "کد تأیید ارسال شد";
+    print_r($result);
+} catch (Exception $e) {
+    echo "خطا: " . $e->getMessage();
+}
+```
+
+```javascript
+const receptor = '09123456789';
+const templateName = 'otp-template';
+const param1 = '12345'; // کد تأیید
+const param2 = ''; // پارامتر دوم - اختیاری
+const param3 = ''; // پارامتر سوم - اختیاری
+
+api.verify({
+  receptor,
+  type: '1',
+  template: templateName,
+  param1,
+  param2,
+  param3
+})
+.then(response => {
+  console.log('کد تأیید ارسال شد');
+  console.log(response);
+})
+.catch(error => {
+  console.error('خطا:', error);
+});
+```
+
+```python
+receptor = "09123456789"
+template_name = "otp-template"
+param1 = "12345"  # کد تأیید
+param2 = ""  # پارامتر دوم - اختیاری
+param3 = ""  # پارامتر سوم - اختیاری
+
+try:
+    result = sms.verify(
+        receptor=receptor,
+        type=1,
+        template=template_name,
+        param1=param1,
+        param2=param2,
+        param3=param3
+    )
+    
+    print("کد تأیید ارسال شد")
+    print(result)
+except Exception as e:
+    print(f"خطا: {str(e)}")
+```
+
+```csharp
+var receptor = "09123456789";
+var templateName = "otp-template";
+var param1 = "12345"; // کد تأیید
+var param2 = ""; // پارامتر دوم - اختیاری
+var param3 = ""; // پارامتر سوم - اختیاری
+
+try
+{
+    var result = await api.VerifyAsync(
+        receptor,
+        1,
+        templateName,
+        param1,
+        param2,
+        param3
+    );
+    
+    Console.WriteLine("کد تأیید ارسال شد");
+    Console.WriteLine(result);
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"خطا: {ex.Message}");
+}
+```
+
+```csharp
+// استفاده در .NET Core
+[HttpPost("send-otp")]
+public async Task<IActionResult> SendOtpAsync(
+    [FromBody] SendOtpRequest request)
+{
+    var templateName = "otp-template";
+    var otpCode = GenerateOtpCode(); // تولید کد 6 رقمی
+    
+    try
+    {
+        var result = await _api.VerifyAsync(
+            request.PhoneNumber,
+            1,
+            templateName,
+            otpCode,
+            "", // پارامتر دوم
+            ""  // پارامتر سوم
+        );
+        
+        // ذخیره کد OTP در Cache یا Database
+        await _cache.SetStringAsync(
+            $"otp:{request.PhoneNumber}",
+            otpCode,
+            new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
+            }
+        );
+        
+        return Ok(new { 
+            success = true, 
+            message = "کد تأیید ارسال شد" 
+        });
+    }
+    catch (Exception ex)
+    {
+        return BadRequest(new { 
+            success = false, 
+            message = $"خطا: {ex.Message}" 
+        });
+    }
+}
+
+private string GenerateOtpCode()
+{
+    return new Random().Next(100000, 999999).ToString();
+}
+```
+
+```java
+String receptor = "09123456789";
+String templateName = "otp-template";
+String param1 = "12345"; // کد تأیید
+String param2 = ""; // پارامتر دوم - اختیاری
+String param3 = ""; // پارامتر سوم - اختیاری
+
+try {
+    VerifyResult result = api.verify(
+        receptor,
+        1,
+        templateName,
+        param1,
+        param2,
+        param3
+    );
+    
+    System.out.println("کد تأیید ارسال شد");
+    System.out.println(result);
+} catch (Exception e) {
+    System.out.println("خطا: " + e.getMessage());
+}
+```
+
+```go
+receptor := "09123456789"
+templateName := "otp-template"
+param1 := "12345" // کد تأیید
+param2 := ""      // پارامتر دوم - اختیاری
+param3 := ""      // پارامتر سوم - اختیاری
+
+result, err := api.Verify(
+    receptor,
+    1,
+    templateName,
+    param1,
+    param2,
+    param3,
+)
+
+if err != nil {
+    fmt.Printf("خطا: %v\n", err)
+    return
+}
+
+fmt.Println("کد تأیید ارسال شد")
+fmt.Println(result)
+```
+
+</CodeTabs>
+
+## دریافت وضعیت پیام
+
+برای بررسی وضعیت ارسال پیام:
+
+<CodeTabs labels={["PHP", "Node.js", "Python", "C#", ".NET Core", "Java", "Go"]}>
+
+```php
+<?php
+$messageId = "123456789";
+
+try {
+    $result = $api->Status($messageId);
+    
+    echo "وضعیت پیام:";
+    print_r($result);
+} catch (Exception $e) {
+    echo "خطا: " . $e->getMessage();
+}
+```
+
+```javascript
+const messageId = '123456789';
+
+api.status({
+  id: messageId
+})
+.then(response => {
+  console.log('وضعیت پیام:');
+  console.log(response);
+})
+.catch(error => {
+  console.error('خطا:', error);
+});
+```
+
+```python
+message_id = "123456789"
+
+try:
+    result = sms.status(
+        message_id=message_id
+    )
+    
+    print("وضعیت پیام:")
+    print(result)
+except Exception as e:
+    print(f"خطا: {str(e)}")
+```
+
+```csharp
+var messageId = "123456789";
+
+try
+{
+    var result = await api.StatusAsync(messageId);
+    
+    Console.WriteLine("وضعیت پیام:");
+    Console.WriteLine(result);
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"خطا: {ex.Message}");
+}
+```
+
+```csharp
+// استفاده در .NET Core
+[HttpGet("status/{messageId}")]
+public async Task<IActionResult> GetMessageStatusAsync(
+    string messageId)
+{
+    try
+    {
+        var result = await _api.StatusAsync(messageId);
+        
+        return Ok(new
+        {
+            success = true,
+            data = new
+            {
+                messageId = result.MessageId,
+                status = result.Status,
+                deliveryDate = result.DeliveryDate,
+                cost = result.Cost
+            }
+        });
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "خطا در دریافت وضعیت پیام {MessageId}", messageId);
+        return BadRequest(new 
+        { 
+            success = false, 
+            message = $"خطا: {ex.Message}" 
+        });
+    }
+}
+```
+
+```java
+String messageId = "123456789";
+
+try {
+    StatusResult result = api.status(messageId);
+    
+    System.out.println("وضعیت پیام:");
+    System.out.println(result);
+} catch (Exception e) {
+    System.out.println("خطا: " + e.getMessage());
+}
+```
+
+```go
+messageId := "123456789"
+
+result, err := api.Status(messageId)
+
+if err != nil {
+    fmt.Printf("خطا: %v\n", err)
+    return
+}
+
+fmt.Println("وضعیت پیام:")
+fmt.Println(result)
+```
+
+</CodeTabs>
+
+## لینک‌های مفید
+
+- [مستندات کامل API](/guides/send-single)
+- [جدول خطاها](/error-table)
+- [راهنمای شروع سریع](/getting-started)
+
+## پشتیبانی
+
+در صورت بروز هرگونه مشکل یا سوال، می‌توانید از طریق راه‌های زیر با ما در ارتباط باشید:
+
+- ایمیل پشتیبانی: support[at]ghasedak-ict.com
+- تلفن:  74417700 - 021 
+- وب‌سایت: [ghasedak.me](https://ghasedak.me)
+

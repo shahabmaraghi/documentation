@@ -1,0 +1,24 @@
+import { OperationBox } from "@/app/components/OperationBox";
+import { sendSingleSmsApiSpec } from "./api-spec";
+
+# ارسال تکی
+
+<div className="operation-hero">
+  <div className="operation-hero__text">
+    <p>از این متد برای ارسال پیامک به صورت تکی استفاده می شود.</p>
+  </div>
+
+  <OperationBox
+    method="POST"
+    endpoint="https://gateway.ghasedak.me/rest/api/v1/WebService/SendSingleSms"
+  />
+</div>
+
+
+
+<ScalarApiReference spec={sendSingleSmsApiSpec} />
+
+## جدول خطاها
+
+چنانچه درخواست‌های ارسالی شما با خطای خاصی مواجه شد، برای آگاهی از دلایل آن می‌توانید از [جدول خطاها](/error-table) کمک بگیرید.
+

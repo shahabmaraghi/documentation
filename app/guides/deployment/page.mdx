@@ -1,0 +1,38 @@
+# Deployment Workflow
+
+Once your project runs locally, follow these steps to share it with your team and users.
+
+## Prepare the build
+
+1. Ensure the latest dependencies are installed:
+
+```bash
+npm install
+```
+
+2. Run the production build to surface any issues:
+
+```bash
+npm run build
+```
+
+3. Start the preview server and smoke test the critical paths:
+
+```bash
+npm run start
+```
+
+## Continuous deployment
+
+- Connect the repository to your hosting provider (Vercel, Netlify, or your internal platform).
+- Configure environment variables in the provider dashboard. Keep `NEXT_PUBLIC_*` variables public, the rest private.
+- Enable automatic deployments from your main or release branch. Protect the branch with reviews to keep docs accurate.
+
+## Release checklist
+
+- [ ] Update the changelog in `reference/release-notes.mdx`.
+- [ ] Announce breaking changes in the community forum.
+- [ ] Verify the sidebar navigation and search index after each deploy.
+
+Sticking to the checklist keeps your documentation site reliable and trustworthy.
+

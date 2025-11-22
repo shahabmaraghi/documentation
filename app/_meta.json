@@ -1,0 +1,36 @@
+{
+  "index": {
+    "title": "نمای کلی مستندات",
+    "type": "page"
+  },
+  "getting-started": {
+    "title": "Quick Start",
+    "type": "page"
+  },
+  "guides": {
+    "title": "How-to Guides",
+    "display": "children"
+  },
+  "reference": {
+    "title": "Reference",
+    "display": "children"
+  },
+  "resources": {
+    "title": "Resources",
+    "items": {
+      "dashboard": {
+        "title": "Ghasedak Dashboard",
+        "href": "https://ghasedak.io"
+      },
+      "status": {
+        "title": "Service Status",
+        "href": "https://status.ghasedak.io"
+      },
+      "support": {
+        "title": "Support Center",
+        "href": "https://ghasedak.io/support"
+      }
+    }
+  }
+}
+

@@ -1,0 +1,25 @@
+import type { Metadata } from "next";
+import type { ReactNode } from "react";
+
+import RootLayoutClient from "./RootLayoutClient";
+import "./globals.css";
+
+export const metadata: Metadata = {
+  title: "مستندات اس ام اس قاصدک",
+  icons: {
+    icon: "/images/logo.png",
+    shortcut: "/images/logo.png",
+    apple: "/images/logo.png",
+  },
+};
+
+export default function RootLayout({ children }: { children: ReactNode }) {
+  return (
+    <html lang="en" dir="rtl" data-theme="light" suppressHydrationWarning>
+      <body className="doc-body is-rtl is-light">
+        <RootLayoutClient>{children}</RootLayoutClient>
+      </body>
+    </html>
+  );
+}
+

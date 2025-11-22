@@ -1,0 +1,44 @@
+# Local Setup
+
+Configure your environment to match the project standards. Completing these steps keeps onboarding smooth for every contributor.
+
+## 1. Install recommended extensions
+
+- **ESLint** – surfaces lint issues inline.
+- **Prettier** – ensures consistent formatting.
+- **Tailwind CSS IntelliSense** – auto-complete for utility classes.
+
+## 2. Configure environment variables
+
+Create `.env.local`:
+
+```bash
+cp .env.example .env.local
+```
+
+Update the file with the API keys you were given. Never commit secrets—`.env.local` is already ignored.
+
+## 3. Run lint and tests
+
+```bash
+npm run lint
+npm test
+```
+
+Fix any issues before opening a pull request. Keeping the docs site green prevents broken deployments.
+
+## 4. Enable auto-formatting
+
+In VS Code, add the following workspace settings:
+
+```json
+{
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  }
+}
+```
+
+You're ready to tackle the next guide or contribute new pages!
+

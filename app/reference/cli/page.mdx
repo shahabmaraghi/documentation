@@ -1,0 +1,19 @@
+# CLI Commands
+
+Use these scripts from the project root to work with the docs site.
+
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Starts the Next.js dev server with Nextra enabled. |
+| `npm run build` | Creates an optimized production build. |
+| `npm run start` | Serves the production build locally for smoke testing. |
+| `npm run lint` | Runs ESLint using the project configuration. |
+
+## Frequently used flags
+
+- `npm run dev -- --turbo` – try the Turbopack workflow.
+- `npm run lint -- --fix` – automatically fix simple lint issues.
+- `npm run build -- --debug` – inspect the compiled output if something fails.
+
+Always run `npm run lint` before pushing changes to keep CI green.
+
