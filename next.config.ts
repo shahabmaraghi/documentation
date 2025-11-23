@@ -14,9 +14,4 @@ const workspaceRoot = path.dirname(fileURLToPath(import.meta.url))
 export default withNextra({
   reactStrictMode: true,
   transpilePackages: ['nextra', 'nextra-theme-docs'],
-  experimental: {
-    turbo: {
-      root: workspaceRoot,
-    },
-  },
 })

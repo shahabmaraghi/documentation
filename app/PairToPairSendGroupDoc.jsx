@@ -660,9 +660,9 @@ func main() {
           </Scrollbar>
           {programms
             ?.filter((item) => item?.id === currentTab)[0]
-            ?.details?.map((item) => {
+            ?.details?.map((item, index) => {
               return (
-                <Stack sx={{ paddingY: 1.5 }}>
+                <Stack key={item?.id ?? index} sx={{ paddingY: 1.5 }}>
                   {currentTab === 'curl' ? (
                     <pre
                       style={{
