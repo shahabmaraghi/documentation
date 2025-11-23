@@ -1223,6 +1223,11 @@ html {
   margin-bottom: 0 !important;
 }
 
+/* Hide last div child of operation-details in Scalar sections */
+.scalar-api-reference .operation-details > div:last-child {
+  display: none !important;
+}
+
 .doc-article h3 {
   font-size: clamp(0.95rem, 1.6vw, 1.1rem);
   margin-top: 2.2rem;
