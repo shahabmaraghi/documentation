@@ -518,6 +518,8 @@ const applyInlineModalOverrides = (containerEl?: HTMLDivElement | null) => {
     });
 };
 
+
+
 const startModalEnforcementLoop = (
   containerEl?: HTMLDivElement | null,
   onTick?: () => void
@@ -581,6 +583,7 @@ export function ScalarApiReference({ spec }: ScalarApiReferenceProps) {
     },
     theme: scalarTheme,
     layout: "modern",
+    darkMode: false,
     hideDownloadButton: false,
     hideModels: false,
     showSidebar: false,
