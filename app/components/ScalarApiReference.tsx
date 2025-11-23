@@ -1,13 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { ApiReferenceReact } from "@scalar/api-reference-react";
 import type { AnyApiReferenceConfiguration } from "@scalar/api-reference-react";
 import "@scalar/api-reference-react/style.css";
 
 interface ScalarApiReferenceProps {
   spec: object;
-  theme?: "light" | "dark";
 }
 
 type ScalarConfiguration = AnyApiReferenceConfiguration & {
@@ -26,19 +25,13 @@ const STRIPPED_LAYOUT_CSS = `
   display: none !important;
 }
 
-/* Hide ALL "Show More" buttons and expand all content */
-.scalar-api-reference button[class*="show"],
-.scalar-api-reference button[class*="Show"],
-.scalar-api-reference button[class*="more"],
-.scalar-api-reference button[class*="More"],
-.scalar-api-reference button[class*="expand"],
-.scalar-api-reference button[class*="Expand"],
-.scalar-api-reference button[class*="toggle"],
-.scalar-api-reference button[class*="Toggle"],
+/* Hide only "Show More" content expansion buttons, not test/request buttons */
 .scalar-api-reference [class*="show-more"],
 .scalar-api-reference [class*="showMore"],
+.scalar-api-reference [class*="ShowMore"],
 .scalar-api-reference [class*="show-less"],
-.scalar-api-reference [class*="showLess"] {
+.scalar-api-reference [class*="showLess"],
+.scalar-api-reference [class*="ShowLess"] {
   display: none !important;
   visibility: hidden !important;
   opacity: 0 !important;
@@ -578,11 +571,10 @@ const ensureGlobalModalCss = () => {
   isEnsuringModalCss = false;
 };
 
-export function ScalarApiReference({ spec, theme }: ScalarApiReferenceProps) {
-  const [currentTheme, setCurrentTheme] = useState<"light" | "dark">("light");
+export function ScalarApiReference({ spec }: ScalarApiReferenceProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const readyAnnouncedRef = useRef(false);
-  const scalarTheme = currentTheme === "dark" ? "deepSpace" : "default";
+  const scalarTheme: "default" = "default";
   const configuration = {
     spec: {
       content: spec,
@@ -678,23 +670,13 @@ export function ScalarApiReference({ spec, theme }: ScalarApiReferenceProps) {
       return;
     }
 
-    // Find and click all "Show More" buttons to expand content
-    const showMoreButtons = container.querySelectorAll<HTMLButtonElement>(
-      'button[class*="show-more"], button[class*="showMore"], button[class*="expand"], button:has-text("Show More"), button:has-text("show more")'
-    );
-    
-    showMoreButtons.forEach((button) => {
-      // Click to expand
-      button.click();
-      // Then hide the button
-      (button as HTMLElement).style.display = "none";
-    });
-
-    // Also find buttons by text content
+  
+    // Also find buttons by exact text content for "Show More" / "Show Less"
     const allButtons = container.querySelectorAll<HTMLButtonElement>("button");
     allButtons.forEach((button) => {
       const text = button.textContent?.toLowerCase() || "";
-      if (text.includes("show more") || text.includes("show less") || text.includes("expand")) {
+      // Only hide if it's specifically "show more" or "show less", not other buttons
+      if (text === "show more" || text === "show less" || text.trim() === "show more" || text.trim() === "show less") {
         button.click();
         button.style.display = "none";
       }
@@ -850,20 +832,10 @@ export function ScalarApiReference({ spec, theme }: ScalarApiReferenceProps) {
   }, []);
 
   useEffect(() => {
-    // Auto-detect theme from document
-    const html = document.documentElement;
-    const updateTheme = () => {
-      const detectedTheme =
-        html.getAttribute("data-theme") === "dark" ? "dark" : "light";
-      setCurrentTheme(theme || detectedTheme);
-    };
-
-    updateTheme();
     ensureGlobalModalCss();
+    const html = document.documentElement;
 
-    // Watch for theme changes
     const observer = new MutationObserver(() => {
-      updateTheme();
       ensureGlobalModalCss();
       const containerEl = containerRef.current;
       applyInlineModalOverrides(containerEl);
@@ -876,7 +848,7 @@ export function ScalarApiReference({ spec, theme }: ScalarApiReferenceProps) {
     });
 
     return () => observer.disconnect();
-  }, [theme]);
+  }, []);
 
   useEffect(() => {
     const replaceToastText = () => {

@@ -6,8 +6,6 @@ import {
   useRef,
   useState,
   type ReactNode,
-  cloneElement,
-  isValidElement,
 } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -16,6 +14,7 @@ type NavItem = {
   title: string;
   href: string;
   external?: boolean;
+  method?: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 };
 
 type NavSection = {
@@ -39,11 +38,12 @@ const navSections: NavSection[] = [
     title: "وب سرویس ارسال",
     description: "انواع روش‌های ارسال پیامک از طریق وب‌سرویس",
     items: [
-      { title: "ارسال تکی", href: "/guides/send-single" },
-      { title: "ارسال گروهی", href: "/guides/send-bulk" },
+      { title: "ارسال تکی", href: "/guides/send-single", method: "POST" },
+      { title: "ارسال گروهی", href: "/guides/send-bulk", method: "POST" },
       {
         title: "ارسال گروهی نظیر به نظیر",
         href: "/guides/send-bulk-peer-to-peer",
+        method: "POST",
       },
     ],
   },
@@ -61,14 +61,17 @@ const navSections: NavSection[] = [
       {
         title: "ارسال پیامک اعتبار سنجی (OTP)",
         href: "/guides/sendOtpSms",
+        method: "POST",
       },
       {
         title: "ارسال پیامک OTP جدید",
         href: "/guides/send-otp-new",
+        method: "POST",
       },
       {
         title: "دریافت پارامترهای قالب OTP",
         href: "/guides/otp-template-params",
+        method: "GET",
       },
     ],
   },
@@ -79,6 +82,7 @@ const navSections: NavSection[] = [
       {
         title: "وضعیت پیام های ارسالی",
         href: "/reports/outbox-status",
+        method: "GET",
       },
     ],
   },
@@ -89,14 +93,18 @@ const navSections: NavSection[] = [
       {
         title: "100 پیام آخر",
         href: "/inbox/latest-100",
+        method: "GET",
       },
       {
         title: "صفحه بندی",
         href: "/inbox/paginated",
+        method: "GET",
       },
     ],
   },
 ];
+
+const ROOT_SECTION_KEY = "__root__";
 
 const findSectionTitleForHref = (href?: string | null): string | null => {
   if (!href) {
@@ -110,8 +118,8 @@ const findSectionTitleForHref = (href?: string | null): string | null => {
   return null;
 };
 
-const ROOT_SECTION_KEY = "__root__";
 const getSectionKey = (title: string | null) => title ?? ROOT_SECTION_KEY;
+
 const getSectionLabel = (key: string) =>
   key === ROOT_SECTION_KEY ? "سایر صفحات" : key;
 
@@ -122,7 +130,11 @@ export default function RootLayoutClient({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const [theme, setTheme] = useState<"light" | "dark">("light");
+  const currentSectionTitle = useMemo(
+    () => findSectionTitleForHref(pathname),
+    [pathname]
+  );
+  const initialSectionKey = getSectionKey(currentSectionTitle);
   const [searchTerm, setSearchTerm] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobileViewport, setIsMobileViewport] = useState(false);
@@ -140,24 +152,15 @@ export default function RootLayoutClient({
   const autoAdvanceLockRef = useRef(false);
   const articleEndRef = useRef<HTMLDivElement | null>(null);
   const isManualNavigationRef = useRef(false);
-  const currentSectionTitle = useMemo(
-    () => findSectionTitleForHref(pathname),
-    [pathname]
-  );
-  const initialSectionKey = getSectionKey(currentSectionTitle);
-  const [currentSectionKey, setCurrentSectionKey] = useState(initialSectionKey);
-  const [sectionStacks, setSectionStacks] = useState<
-    Record<string, Array<{ href: string }>>
-  >(() =>
-    pathname
-      ? { [initialSectionKey]: [{ href: pathname }] }
-      : {}
+  const [sectionStacks, setSectionStacks] = useState<Record<string, string[]>>(
+    () => (pathname ? { [initialSectionKey]: [pathname] } : {})
   );
   const [visitedSectionOrder, setVisitedSectionOrder] = useState<string[]>(
     pathname ? [initialSectionKey] : []
   );
-  const [cachedPageHTML, setCachedPageHTML] = useState<Record<string, string>>({});
-
+  const [pageSnapshots, setPageSnapshots] = useState<Record<string, string>>(
+    {}
+  );
   const normalizedQuery = searchTerm.trim().toLowerCase();
   const isSearchMode = normalizedQuery.length > 0;
   const orderedNavItems = useMemo(
@@ -193,75 +196,93 @@ export default function RootLayoutClient({
     }));
   }, []);
 
-  const upsertSectionPage = useCallback(
-    (sectionKey: string, href: string | null, isManualNavigation: boolean = false) => {
-      if (!href) {
+  const captureSnapshot = useCallback(() => {
+    if (!pathname) {
+      return;
+    }
+
+    const pageElement = document.querySelector<HTMLElement>(
+      `.doc-article__page[data-page-href="${pathname}"]`
+    );
+
+    if (!pageElement || !pageElement.innerHTML) {
+      return;
+    }
+
+    setPageSnapshots((previous) => {
+      const nextMarkup = pageElement.innerHTML;
+      const existingMarkup = previous[pathname];
+      if (
+        existingMarkup &&
+        existingMarkup.length >= nextMarkup.length
+      ) {
+        return previous;
+      }
+      return {
+        ...previous,
+        [pathname]: nextMarkup,
+      };
+    });
+  }, [pathname]);
+
+  useEffect(() => {
+    const snapshotTimer = window.setTimeout(captureSnapshot, 1200);
+    return () => window.clearTimeout(snapshotTimer);
+  }, [captureSnapshot, children]);
+
+  useEffect(() => {
+    const handleScalarReady = (event: Event) => {
+      const detail = (event as CustomEvent<{ pathname: string }>).detail;
+      if (!detail || detail.pathname !== pathname) {
         return;
       }
+      captureSnapshot();
+    };
 
-      setSectionStacks((previous) => {
-        // If manual navigation (user clicked), COMPLETELY RESET - show ONLY the clicked page
-        if (isManualNavigation) {
-          // Clear cached HTML for ALL pages to ensure fresh render
-          setCachedPageHTML({});
-          
-          // Clear ALL stacks and show only the clicked page
-          return {
-            [sectionKey]: [{ href }],
-          };
-        }
-
-        // Auto-advance: add to the stack
-        const stack = previous[sectionKey] ?? [];
-        const existingIndex = stack.findIndex((page) => page.href === href);
-        if (existingIndex >= 0) {
-          // Page already exists, don't duplicate
-          return previous;
-        }
-        return {
-          ...previous,
-          [sectionKey]: [...stack, { href }],
-        };
-      });
-
-      setVisitedSectionOrder((previous) =>
-        previous.includes(sectionKey)
-          ? previous
-          : [...previous, sectionKey]
+    window.addEventListener(
+      "ghasedak:scalar-ready",
+      handleScalarReady as EventListener
+    );
+    return () =>
+      window.removeEventListener(
+        "ghasedak:scalar-ready",
+        handleScalarReady as EventListener
       );
-    },
-    []
-  );
+  }, [captureSnapshot, pathname]);
 
-  // Capture HTML after page renders
-  useEffect(() => {
-    if (!pathname) return;
-    
-    const timer = window.setTimeout(() => {
-      const currentPageDiv = document.querySelector(`[data-page-href="${pathname}"]`);
-      if (currentPageDiv && currentPageDiv.innerHTML) {
-        setCachedPageHTML((prev) => ({
-          ...prev,
-          [pathname]: currentPageDiv.innerHTML,
-        }));
-      }
-    }, 2000); // Wait 2 seconds for Scalar to render
-    
-    return () => window.clearTimeout(timer);
-  }, [pathname, children]);
-  
   useEffect(() => {
     if (!pathname) {
       return;
     }
 
-    const sectionKey = getSectionKey(currentSectionTitle);
     const isManual = isManualNavigationRef.current;
-    
-    setCurrentSectionKey(sectionKey);
-    
-    upsertSectionPage(sectionKey, pathname, isManual);
-    
+    const sectionKey = getSectionKey(currentSectionTitle);
+
+    if (isManual) {
+      setSectionStacks({
+        [sectionKey]: [pathname],
+      });
+      setVisitedSectionOrder([sectionKey]);
+    } else {
+      setSectionStacks((previous) => {
+        const currentStack = previous[sectionKey] ?? [];
+        if (currentStack.includes(pathname)) {
+          return previous;
+        }
+        return {
+          ...previous,
+          [sectionKey]: [...currentStack, pathname],
+        };
+      });
+
+      setVisitedSectionOrder((previous) => {
+        if (previous.includes(sectionKey)) {
+          return previous;
+        }
+        return [...previous, sectionKey];
+      });
+    }
+
     setActiveMenuItem(pathname);
     const parentSection = navSections.find((section) =>
       section.items.some((item) => item.href === pathname)
@@ -272,30 +293,26 @@ export default function RootLayoutClient({
         [parentSection.title]: true,
       }));
     }
-    
-    // Only scroll to top on manual navigation
+
     if (isManual) {
-      window.scrollTo({ top: 0, behavior: "auto" });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
-    
-    // Hide loading indicator after content is ready
+
     const hideLoadingTimer = window.setTimeout(() => {
       setIsNavigating(false);
     }, 300);
-    
-    // Reset flags after processing
+
     isManualNavigationRef.current = false;
-    
-    // Reset auto-advance lock after content is rendered
+
     const timeoutId = window.setTimeout(() => {
       autoAdvanceLockRef.current = false;
     }, 100);
-    
+
     return () => {
       window.clearTimeout(timeoutId);
       window.clearTimeout(hideLoadingTimer);
     };
-  }, [currentSectionTitle, pathname, upsertSectionPage]);
+  }, [currentSectionTitle, orderedNavItems, pathname]);
 
   useEffect(() => {
     if (!activeItemRef.current || isMobileViewport) {
@@ -350,6 +367,7 @@ export default function RootLayoutClient({
         }
 
         autoAdvanceLockRef.current = true;
+        captureSnapshot();
         router.push(nextItem.href);
       },
       {
@@ -362,25 +380,16 @@ export default function RootLayoutClient({
     observer.observe(sentinel);
 
     return () => observer.disconnect();
-  }, [orderedNavItems, pathname, router]);
+  }, [orderedNavItems, pathname, router, captureSnapshot]);
 
   useEffect(() => {
-    const stored = window.localStorage.getItem("doc-theme");
-    if (stored === "light" || stored === "dark") {
-      setTheme(stored);
-    } else {
-      setTheme("light");
-      window.localStorage.setItem("doc-theme", "light");
+    document.documentElement.setAttribute("data-theme", "light");
+    const body = document.body;
+    body.classList.remove("is-dark");
+    if (!body.classList.contains("is-light")) {
+      body.classList.add("is-light");
     }
   }, []);
-
-  useEffect(() => {
-    window.localStorage.setItem("doc-theme", theme);
-    document.documentElement.setAttribute("data-theme", theme);
-    const body = document.body;
-    body.classList.remove("is-light", "is-dark");
-    body.classList.add(theme === "dark" ? "is-dark" : "is-light");
-  }, [theme]);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 1024px)");
@@ -587,7 +596,7 @@ export default function RootLayoutClient({
                               isActive ? "doc-sidebar__item--active" : ""
                             }
                           >
-                            <Link
+                        <Link
                               href={item.href}
                               target={item.external ? "_blank" : undefined}
                               rel={item.external ? "noreferrer" : undefined}
@@ -595,6 +604,7 @@ export default function RootLayoutClient({
                                 isActive ? "doc-sidebar__link--active" : ""
                               }
                               onClick={() => {
+                            captureSnapshot();
                                 isManualNavigationRef.current = true;
                                 setIsNavigating(true);
                                 if (isMobileViewport) {
@@ -603,7 +613,16 @@ export default function RootLayoutClient({
                                 setActiveMenuItem(item.href);
                               }}
                             >
-                              {item.title}
+                              <span className="doc-sidebar__link-text">
+                                {item.title}
+                              </span>
+                              {item.method && (
+                                <span
+                                  className={`doc-sidebar__method-badge doc-sidebar__method-badge--${item.method.toLowerCase()}`}
+                                >
+                                  {item.method}
+                                </span>
+                              )}
                             </Link>
                           </li>
                         );
@@ -618,9 +637,13 @@ export default function RootLayoutClient({
 
         <main className="doc-content" role="main">
           <article className="doc-article">
-            <div className="doc-article__page" data-page-href={pathname}>
-              {children}
-            </div>
+            <DocContentTrail
+              sectionStacks={sectionStacks}
+              visitedSectionOrder={visitedSectionOrder}
+              activePath={pathname ?? ""}
+              pageSnapshots={pageSnapshots}
+              activeContent={children}
+            />
             <div
               ref={articleEndRef}
               className="doc-article__sentinel"
@@ -653,6 +676,90 @@ export default function RootLayoutClient({
         </div> */}
       </footer>
     </div>
+  );
+}
+
+type DocContentTrailProps = {
+  sectionStacks: Record<string, string[]>;
+  visitedSectionOrder: string[];
+  activePath: string;
+  pageSnapshots: Record<string, string>;
+  activeContent: ReactNode;
+};
+
+function DocContentTrail({
+  sectionStacks,
+  visitedSectionOrder,
+  activePath,
+  pageSnapshots,
+  activeContent,
+}: DocContentTrailProps) {
+  const fallbackSectionKey = getSectionKey(findSectionTitleForHref(activePath));
+
+  const sectionsToRender =
+    visitedSectionOrder.length > 0
+      ? visitedSectionOrder
+      : activePath
+      ? [fallbackSectionKey]
+      : [];
+
+  if (sectionsToRender.length === 0) {
+    return null;
+  }
+
+  return (
+    <>
+      {sectionsToRender.map((sectionKey) => {
+        const pages = sectionStacks[sectionKey] ?? [];
+        const label = getSectionLabel(sectionKey);
+        const showHeader = sectionKey !== ROOT_SECTION_KEY && pages.length > 1;
+
+        if (pages.length === 0) {
+          if (!activePath || sectionKey !== fallbackSectionKey) {
+            return null;
+          }
+        }
+
+        const resolvedPages =
+          pages.length > 0 ? pages : activePath ? [activePath] : [];
+
+        return (
+          <div key={sectionKey} className="doc-article__section">
+            {showHeader ? (
+              <div className="doc-article__section-header">
+                <h2 className="doc-section-title">{label}</h2>
+              </div>
+            ) : null}
+            {resolvedPages.map((href, pageIndex) => {
+              const isActive = href === activePath;
+              const cachedMarkup = pageSnapshots[href];
+
+              if (!isActive && !cachedMarkup) {
+                return null;
+              }
+
+              return (
+                <div key={href}>
+                  <div className="doc-article__page" data-page-href={href}>
+                    {isActive ? (
+                      activeContent
+                    ) : (
+                      <div
+                        className="doc-article__page-snapshot"
+                        dangerouslySetInnerHTML={{ __html: cachedMarkup }}
+                      />
+                    )}
+                  </div>
+                  {pageIndex < resolvedPages.length - 1 && (
+                    <div className="doc-article__page-divider" />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        );
+      })}
+    </>
   );
 }
 

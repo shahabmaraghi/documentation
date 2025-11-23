@@ -358,7 +358,6 @@ func main() {
         ],
         responses: {
           "200": {
-            description: "پاسخ موفق",
             content: {
               "application/json": {
                 schema: {

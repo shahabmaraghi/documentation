@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, ReactNode } from "react";
+import { Children, ReactNode, useState } from "react";
 
 interface CodeTabsProps {
   children: ReactNode;
@@ -9,9 +9,19 @@ interface CodeTabsProps {
 }
 
 export function CodeTabs({ children, labels, defaultTab = 0 }: CodeTabsProps) {
-  const [activeTab, setActiveTab] = useState(defaultTab);
+  const totalTabs = labels.length;
+  const safeDefaultTab =
+    totalTabs > 0 ? Math.min(Math.max(defaultTab, 0), totalTabs - 1) : 0;
+  const [activeTab, setActiveTab] = useState(safeDefaultTab);
 
-  const childrenArray = Array.isArray(children) ? children : [children];
+  const normalizedChildren = Children.toArray(children).filter((child) => {
+    if (typeof child === "string") {
+      return child.trim().length > 0;
+    }
+    return true;
+  });
+
+  const panels = labels.map((_, index) => normalizedChildren[index] ?? null);
 
   const normalizeLabel = (label: string) =>
     label
@@ -47,50 +57,71 @@ export function CodeTabs({ children, labels, defaultTab = 0 }: CodeTabsProps) {
 
   return (
     <div className="code-tabs">
-      <div className="code-tabs__header">
-        {labels.map((label, index) => (
-          <button
-            key={index}
-            className={`code-tabs__tab ${activeTab === index ? "is-active" : ""}`}
-            onClick={() => setActiveTab(index)}
-            type="button"
-          >
-            {(() => {
-              const token = getIconToken(label);
-              const iconContent = token.icon ? (
-                <img src={token.icon} alt={`${label} icon`} loading="lazy" />
-              ) : (
-                token.text ?? label.charAt(0).toUpperCase()
-              );
+      <div className="code-tabs__header" role="tablist">
+        {labels.map((label, index) => {
+          const normalized = normalizeLabel(label);
+          const tabId = `code-tab-${normalized}-${index}`;
+          const panelId = `${tabId}-panel`;
 
-              return (
-                <span className="code-tabs__tab-label">
-                  <span
-                    className="code-tabs__tab-icon"
-                    style={{
-                      backgroundColor: token.background ?? "var(--doc-surface-alt)",
-                      color: token.color ?? "var(--doc-text)",
-                    }}
-                    aria-hidden={token.icon ? true : undefined}
-                  >
-                    {iconContent}
+          return (
+            <button
+              key={tabId}
+              id={tabId}
+              className={`code-tabs__tab ${activeTab === index ? "is-active" : ""}`}
+              onClick={() => setActiveTab(index)}
+              type="button"
+              role="tab"
+              aria-selected={activeTab === index}
+              aria-controls={panelId}
+            >
+              {(() => {
+                const token = getIconToken(label);
+                const iconContent = token.icon ? (
+                  <img src={token.icon} alt={`${label} icon`} loading="lazy" />
+                ) : (
+                  token.text ?? label.charAt(0).toUpperCase()
+                );
+
+                return (
+                  <span className="code-tabs__tab-label">
+                    <span
+                      className="code-tabs__tab-icon"
+                      style={{
+                        backgroundColor: token.background ?? "var(--doc-surface-alt)",
+                        color: token.color ?? "var(--doc-text)",
+                      }}
+                      aria-hidden={token.icon ? true : undefined}
+                    >
+                      {iconContent}
+                    </span>
+                    <span>{label}</span>
                   </span>
-                  <span>{label}</span>
-                </span>
-              );
-            })()}
-          </button>
-        ))}
+                );
+              })()}
+            </button>
+          );
+        })}
       </div>
       <div className="code-tabs__content">
-        {childrenArray.map((child, index) => (
-          <div
-            key={index}
-            className={`code-tabs__panel ${activeTab === index ? "is-active" : ""}`}
-          >
-            {child}
-          </div>
-        ))}
+        {panels.map((panel, index) => {
+          const label = labels[index] ?? `tab-${index + 1}`;
+          const normalized = normalizeLabel(label);
+          const tabId = `code-tab-${normalized}-${index}`;
+          const panelId = `${tabId}-panel`;
+
+          return (
+            <div
+              key={panelId}
+              id={panelId}
+              className={`code-tabs__panel ${activeTab === index ? "is-active" : ""}`}
+              role="tabpanel"
+              aria-labelledby={tabId}
+              hidden={activeTab !== index}
+            >
+              {panel}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

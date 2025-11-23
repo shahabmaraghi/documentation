@@ -140,7 +140,6 @@ get_template_parameters('Ghasedak')`
         ],
         responses: {
           "200": {
-            description: "پاسخ موفق",
             content: {
               "application/json": {
                 schema: {

@@ -171,7 +171,6 @@ check_sms_status(['23879310', '23879311'], 1)`
         ],
         responses: {
           "200": {
-            description: "پاسخ موفق",
             content: {
               "application/json": {
                 schema: {

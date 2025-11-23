@@ -6,6 +6,13 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "مستندات اس ام اس قاصدک",
+  description: "مستندات کامل API پیامک قاصدک",
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 5,
+    userScalable: true,
+  },
   icons: {
     icon: "/images/logo.png",
     shortcut: "/images/logo.png",

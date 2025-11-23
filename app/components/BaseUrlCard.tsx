@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import "./BaseUrlCard.css";
 
 type BaseUrlCardProps = {
   url: string;
