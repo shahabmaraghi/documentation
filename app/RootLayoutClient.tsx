@@ -919,6 +919,20 @@ export default function RootLayoutClient({
                                 const hash = item.href.split("#")[1];
                                 const targetPath = item.href.split("#")[0];
                                 
+                                // Check if clicking the same route without hash - prevent navigation
+                                if (!hash && pathname === targetPath) {
+                                  e.preventDefault();
+                                  // Just close sidebar on mobile if needed
+                                  if (isMobileViewport) {
+                                    setSidebarOpen(false);
+                                  }
+                                  // Scroll to top if not already there
+                                  if (window.scrollY > 0) {
+                                    window.scrollTo({ top: 0, behavior: "smooth" });
+                                  }
+                                  return;
+                                }
+                                
                                 // Check if it's an OTP or Inbox route (same unified file)
                                 const otpRoutes = [
                                   "/guides/sendOtpSms",
