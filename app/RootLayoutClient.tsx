@@ -704,14 +704,6 @@ export default function RootLayoutClient({
           <Link 
             href="/" 
             className="doc-logo"
-            onClick={(e) => {
-              // Clear any hash from URL when going to home
-              if (window.location.hash) {
-                e.preventDefault();
-                window.history.replaceState(null, "", "/");
-                router.push("/");
-              }
-            }}
           >
             <span className="doc-logo__symbol">
               <img src="/images/logo.png" alt="logo" width={32} height={32} />
@@ -953,18 +945,26 @@ export default function RootLayoutClient({
 
         <main className="doc-content" role="main">
           <article className="doc-article">
-            <DocContentTrail
-              sectionStacks={sectionStacks}
-              visitedSectionOrder={visitedSectionOrder}
-              activePath={pathname ?? ""}
-              pageSnapshots={pageSnapshots}
-              activeContent={children}
-            />
-            <div
-              ref={articleEndRef}
-              className="doc-article__sentinel"
-              aria-hidden="true"
-            />
+            {pathname === "/" ? (
+              <div className="doc-article__page" data-page-href="/">
+                {children}
+              </div>
+            ) : (
+              <>
+                <DocContentTrail
+                  sectionStacks={sectionStacks}
+                  visitedSectionOrder={visitedSectionOrder}
+                  activePath={pathname ?? ""}
+                  pageSnapshots={pageSnapshots}
+                  activeContent={children}
+                />
+                <div
+                  ref={articleEndRef}
+                  className="doc-article__sentinel"
+                  aria-hidden="true"
+                />
+              </>
+            )}
           </article>
         </main>
       </div>
@@ -1010,6 +1010,11 @@ function DocContentTrail({
   pageSnapshots,
   activeContent,
 }: DocContentTrailProps) {
+  // Always show content for home page
+  if (activePath === "/") {
+    return <>{activeContent}</>;
+  }
+
   const fallbackSectionKey = getSectionKey(findSectionTitleForHref(activePath));
 
   const sectionsToRender =

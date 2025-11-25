@@ -480,7 +480,7 @@ export function UnifiedPageContent({ activeSectionId }: UnifiedPageContentProps)
 
   // Determine which unified file to load based on pathname
   const getUnifiedComponent = () => {
-    if (pathname) {
+    if (pathname && pathname !== "/") {
       return routeToUnifiedFile[pathname] || null;
     }
     return null;
@@ -488,8 +488,8 @@ export function UnifiedPageContent({ activeSectionId }: UnifiedPageContentProps)
 
   const UnifiedComponent = getUnifiedComponent();
   
-  // Don't render if no unified component found
-  if (!UnifiedComponent) {
+  // Don't render if no unified component found or on home page
+  if (!UnifiedComponent || pathname === "/") {
     return null;
   }
 
