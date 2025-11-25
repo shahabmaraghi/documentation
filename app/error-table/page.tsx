@@ -135,10 +135,13 @@ export default function ErrorTablePage() {
   const [usingMockData, setUsingMockData] = useState(false);
 
   useEffect(() => {
+    // Set page title
+    document.title = "جدول کدهای خطا - مستندات پیام کوتاه قاصدک";
+
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
-    
+
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
@@ -210,7 +213,9 @@ export default function ErrorTablePage() {
       Object.keys(item).forEach((key) => allKeys.add(key));
     });
 
-    const filteredKeys = Array.from(allKeys).sort().filter((key) => key !== "id");
+    const filteredKeys = Array.from(allKeys)
+      .sort()
+      .filter((key) => key !== "id");
 
     // Swap name and description columns
     const nameIndex = filteredKeys.indexOf("name");
@@ -230,14 +235,12 @@ export default function ErrorTablePage() {
 
   // Create columns dynamically
   const columnHelper = createColumnHelper<ErrorCode>();
-  
+
   const columns = useMemo<ColumnDef<ErrorCode>[]>(() => {
     return headers.map((header) =>
       columnHelper.accessor((row: ErrorCode) => row[header], {
         id: header,
-        header: () => (
-          <span style={{ fontWeight: "600" }}>{header}</span>
-        ),
+        header: () => <span style={{ fontWeight: "600" }}>{header}</span>,
         cell: (info: CellContext<ErrorCode, unknown>) => {
           const value = info.getValue();
           return value !== null && value !== undefined ? String(value) : "-";
@@ -357,7 +360,10 @@ export default function ErrorTablePage() {
                           wordBreak: "break-word",
                         }}
                       >
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
                       </div>
                     </div>
                   ))}

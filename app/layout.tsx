@@ -5,7 +5,10 @@ import RootLayoutClient from "./RootLayoutClient";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "مستندات اس ام اس قاصدک",
+  title: {
+    default: "نمای کلی مستندات - مستنداتت پیام کوتاه ",
+    template: "مستندات پیام کوتاه قاصدک",
+  },
   description: "مستندات کامل API پیامک قاصدک",
   viewport: {
     width: "device-width",
@@ -29,4 +32,3 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     </html>
   );
 }
-

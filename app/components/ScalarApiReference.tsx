@@ -332,7 +332,7 @@ const GLOBAL_MODAL_CSS = String.raw`
 .scalar-modal-layout {
   background-color: rgb(245, 246, 251) !important;
   backdrop-filter: blur(8px) !important;
-  z-index: 12000 !important;
+  z-index: 99999 !important;
   position: fixed !important;
   top: 0 !important;
   left: 0 !important;
@@ -350,7 +350,7 @@ const GLOBAL_MODAL_CSS = String.raw`
 
 .scalar-modal-layout.scalar-modal-layout-full {
   background-color: rgb(245, 246, 251) !important;
-  z-index: 12000 !important;
+  z-index: 99999 !important;
   position: fixed !important;
   top: 0 !important;
   left: 0 !important;
@@ -368,7 +368,7 @@ const GLOBAL_MODAL_CSS = String.raw`
 
 .scalar-modal-layout .scalar-modal {
   box-shadow: 0 30px 70px rgba(2, 6, 23, 0.45) !important;
-  z-index: 12001 !important;
+  z-index: 10000 !important;
   position: relative !important;
   top: auto !important;
   left: auto !important;
@@ -415,6 +415,32 @@ const GLOBAL_MODAL_CSS = String.raw`
   isolation: isolate !important;
 }
 
+/* Ensure modals at body level always appear above header - CRITICAL for desktop */
+body > .scalar-modal-layout,
+html > body > .scalar-modal-layout {
+  z-index: 99999 !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  transform: none !important;
+  isolation: isolate !important;
+}
+
+/* Override any potential stacking context issues from header backdrop-filter */
+.doc-shell ~ .scalar-modal-layout,
+.doc-header ~ .scalar-modal-layout,
+.doc-main ~ .scalar-modal-layout {
+  z-index: 99999 !important;
+}
+
+/* Force modal above header on desktop - header has z-index: 100 */
+.scalar-modal-layout {
+  z-index: 99999 !important;
+  isolation: isolate !important;
+}
+
 /* Additional specific selectors to ensure styles apply */
 .scalar-api-reference-container .scalar-modal-layout,
 body .scalar-modal-layout,
@@ -431,7 +457,7 @@ body .scalar-modal-layout,
   border-radius: 0 !important;
   background-color: rgb(245, 246, 251) !important;
   backdrop-filter: blur(6px) !important;
-  z-index: 12000 !important;
+  z-index: 99999 !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -462,8 +488,18 @@ const applyInlineModalOverrides = (containerEl?: HTMLDivElement | null) => {
   document
     .querySelectorAll<HTMLElement>(".scalar-modal-layout")
     .forEach((layout) => {
-      // CRITICAL: Set z-index FIRST and ALWAYS
-      layout.style.setProperty("z-index", "12000", "important");
+      // CRITICAL: ALWAYS move modal to body level as LAST CHILD
+      // This ensures it's not inside any container and appears after header in DOM order
+      if (layout.parentElement !== document.body) {
+        document.body.appendChild(layout);
+      } else {
+        // Even if already in body, move to end to ensure it's last
+        document.body.appendChild(layout);
+      }
+      
+      // CRITICAL: Set z-index FIRST and ALWAYS - much higher than header (z-index: 100)
+      // Using 99999 to ensure it's above everything including header with backdrop-filter
+      layout.style.setProperty("z-index", "99999", "important");
       layout.style.setProperty("position", "fixed", "important");
       layout.style.setProperty("display", "flex", "important");
       layout.style.setProperty("align-items", "center", "important");
@@ -480,22 +516,26 @@ const applyInlineModalOverrides = (containerEl?: HTMLDivElement | null) => {
       layout.style.setProperty("height", "100vh", "important");
       layout.style.setProperty("margin", "0", "important");
       
-      const isInContainer = containerEl?.contains(layout);
-      if (isInContainer) {
-        layout.style.setProperty(
-          "background-color",
-          "rgb(245, 246, 251)",
-          "important"
-        );
-        layout.style.setProperty("backdrop-filter", "blur(6px)", "important");
-      } else {
-        layout.style.setProperty(
-          "background-color",
-          "rgb(245, 246, 251)",
-          "important"
-        );
-        layout.style.setProperty("backdrop-filter", "blur(8px)", "important");
-      }
+      // Remove any transform or isolation that might create stacking context
+      layout.style.setProperty("transform", "none", "important");
+      layout.style.setProperty("isolation", "isolate", "important");
+      layout.style.setProperty("will-change", "auto", "important");
+      
+      // Force all children to inherit z-index
+      const modalChildren = layout.querySelectorAll("*");
+      modalChildren.forEach((child) => {
+        if (child instanceof HTMLElement) {
+          child.style.setProperty("position", "relative", "important");
+          child.style.setProperty("z-index", "inherit", "important");
+        }
+      });
+      
+      layout.style.setProperty(
+        "background-color",
+        "rgb(245, 246, 251)",
+        "important"
+      );
+      layout.style.setProperty("backdrop-filter", "blur(8px)", "important");
     });
 
   document
@@ -506,7 +546,7 @@ const applyInlineModalOverrides = (containerEl?: HTMLDivElement | null) => {
         "0 30px 70px rgba(2, 6, 23, 0.45)",
         "important"
       );
-      modal.style.setProperty("z-index", "12001", "important");
+      modal.style.setProperty("z-index", "10000", "important");
       modal.style.setProperty("position", "relative", "important");
       modal.style.setProperty("top", "auto", "important");
       modal.style.setProperty("left", "auto", "important");
@@ -530,9 +570,40 @@ const startModalEnforcementLoop = (
   }
 
   modalEnforceHandle = window.setInterval(() => {
+    // 1. Find all modals in the DOM
+    const modals = document.querySelectorAll<HTMLElement>(".scalar-modal-layout");
+    let isAnyModalOpen = false;
+
+    if (modals.length > 0) {
+        modals.forEach((modal) => {
+            // Force move to body to break out of any container stacking contexts
+            if (modal.parentElement !== document.body) {
+                document.body.appendChild(modal);
+            }
+            
+            // Check visibility
+            const style = window.getComputedStyle(modal);
+            if (style.display !== "none" && style.visibility !== "hidden" && style.opacity !== "0") {
+                isAnyModalOpen = true;
+            }
+        });
+    }
+
+    // 2. Add/Remove class to body to trigger CSS overrides
+    if (isAnyModalOpen) {
+      if (!document.body.classList.contains("has-scalar-modal-open")) {
+          document.body.classList.add("has-scalar-modal-open");
+      }
+    } else {
+      if (document.body.classList.contains("has-scalar-modal-open")) {
+          document.body.classList.remove("has-scalar-modal-open");
+      }
+    }
+
+    // 3. Keep applying inline style overrides just in case
     applyInlineModalOverrides(containerEl);
     onTick?.();
-  }, 50);
+  }, 100); // Check every 100ms is sufficient and less performance intensive
 };
 
 const stopModalEnforcementLoop = () => {
@@ -607,24 +678,37 @@ export function ScalarApiReference({
     [scalarTheme, spec]
   );
 
-  const moveModalsIntoContainer = () => {
+  const moveModalsToBody = () => {
     if (typeof document === "undefined") {
       return;
     }
 
-    const containerEl = containerRef.current;
-    if (!containerEl) {
-      return;
-    }
-
-    document
-      .querySelectorAll<HTMLElement>(".scalar-modal-layout")
-      .forEach((modal) => {
-        if (modal.parentElement !== containerEl) {
-          containerEl.appendChild(modal);
-        }
-        modal.classList.add("scalar-modal-layout--embedded");
-      });
+    // Always move modals to body level to ensure they appear above header
+    // Use requestAnimationFrame to ensure DOM is ready
+    requestAnimationFrame(() => {
+      document
+        .querySelectorAll<HTMLElement>(".scalar-modal-layout")
+        .forEach((modal) => {
+          // Remove from current parent
+          const currentParent = modal.parentElement;
+          if (currentParent && currentParent !== document.body) {
+            // Move to body as last child to ensure it's rendered after header
+            document.body.appendChild(modal);
+          } else if (currentParent === document.body) {
+            // Already in body, but move to end to ensure it's last
+            document.body.appendChild(modal);
+          }
+          modal.classList.remove("scalar-modal-layout--embedded");
+          
+          // Force immediate style application
+          modal.style.setProperty("z-index", "99999", "important");
+          modal.style.setProperty("position", "fixed", "important");
+          modal.style.setProperty("top", "0", "important");
+          modal.style.setProperty("left", "0", "important");
+          modal.style.setProperty("right", "0", "important");
+          modal.style.setProperty("bottom", "0", "important");
+        });
+    });
   };
 
   const detachEmbeddedModals = () => {
@@ -632,8 +716,9 @@ export function ScalarApiReference({
       return;
     }
 
+    // Ensure all modals are at body level
     document
-      .querySelectorAll<HTMLElement>(".scalar-modal-layout--embedded")
+      .querySelectorAll<HTMLElement>(".scalar-modal-layout")
       .forEach((modal) => {
         if (modal.parentElement && modal.parentElement !== document.body) {
           document.body.appendChild(modal);
@@ -758,8 +843,8 @@ export function ScalarApiReference({
   useEffect(() => {
     ensureGlobalModalCss();
     const containerEl = containerRef.current;
-    startModalEnforcementLoop(containerEl, moveModalsIntoContainer);
-    moveModalsIntoContainer();
+    startModalEnforcementLoop(containerEl, moveModalsToBody);
+    moveModalsToBody();
     const stopWatchingReady = watchForReadyState();
 
     // Continuously remove "Show More" buttons
@@ -791,7 +876,7 @@ export function ScalarApiReference({
         if (cssNodeInjected) {
           ensureGlobalModalCss();
           const containerEl = containerRef.current;
-          startModalEnforcementLoop(containerEl, moveModalsIntoContainer);
+          startModalEnforcementLoop(containerEl, moveModalsToBody);
         }
       });
 
@@ -803,23 +888,44 @@ export function ScalarApiReference({
   useEffect(() => {
     ensureGlobalModalCss();
 
+    const moveModalToBodyImmediately = (modal: HTMLElement) => {
+      // Use requestAnimationFrame to ensure DOM is ready
+      requestAnimationFrame(() => {
+        if (modal.parentElement !== document.body) {
+          document.body.appendChild(modal);
+        }
+        // Force z-index immediately
+        modal.style.setProperty("z-index", "9999", "important");
+        modal.style.setProperty("position", "fixed", "important");
+        applyInlineModalOverrides(containerRef.current);
+      });
+    };
+
     const observer = new MutationObserver((mutations) => {
       for (const mutation of mutations) {
         if (mutation.type === "childList") {
           const addedNodes = Array.from(mutation.addedNodes);
-          const hasModalNode = addedNodes.some(
-            (node) =>
-              node instanceof HTMLElement &&
-              (node.classList.contains("scalar-modal-layout") ||
-                node.querySelector(".scalar-modal-layout"))
-          );
+          addedNodes.forEach((node) => {
+            if (node instanceof HTMLElement) {
+              // Check if the node itself is a modal
+              if (node.classList.contains("scalar-modal-layout")) {
+                moveModalToBodyImmediately(node);
+              }
+              // Check for modals inside the node
+              const modals = node.querySelectorAll?.(".scalar-modal-layout");
+              modals?.forEach((modal) => {
+                if (modal instanceof HTMLElement) {
+                  moveModalToBodyImmediately(modal);
+                }
+              });
+            }
+          });
 
-          if (hasModalNode) {
-            const containerEl = containerRef.current;
-            moveModalsIntoContainer();
-            applyInlineModalOverrides(containerEl);
-            startModalEnforcementLoop(containerEl, moveModalsIntoContainer);
-          }
+          // Also check all existing modals
+          const containerEl = containerRef.current;
+          moveModalsToBody();
+          applyInlineModalOverrides(containerEl);
+          startModalEnforcementLoop(containerEl, moveModalsToBody);
         }
 
         if (
@@ -828,9 +934,9 @@ export function ScalarApiReference({
           mutation.target.classList.contains("scalar-modal-layout")
         ) {
           const containerEl = containerRef.current;
-          moveModalsIntoContainer();
+          moveModalsToBody();
           applyInlineModalOverrides(containerEl);
-          startModalEnforcementLoop(containerEl, moveModalsIntoContainer);
+          startModalEnforcementLoop(containerEl, moveModalsToBody);
         }
       }
     });
@@ -840,6 +946,12 @@ export function ScalarApiReference({
       subtree: true,
       attributes: true,
       attributeFilter: ["class", "style"],
+    });
+
+    // Also observe document.documentElement to catch modals added at root level
+    observer.observe(document.documentElement, {
+      childList: true,
+      subtree: true,
     });
 
     return () => observer.disconnect();
@@ -853,7 +965,7 @@ export function ScalarApiReference({
       ensureGlobalModalCss();
       const containerEl = containerRef.current;
       applyInlineModalOverrides(containerEl);
-      startModalEnforcementLoop(containerEl, moveModalsIntoContainer);
+      startModalEnforcementLoop(containerEl, moveModalsToBody);
     });
 
     observer.observe(html, {

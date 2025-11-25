@@ -785,7 +785,7 @@ export default function RootLayoutClient({
             <span className="doc-logo__symbol">
               <img src="/images/logo.png" alt="logo" width={32} height={32} />
             </span>
-            <span className="doc-logo__text">مستندات اس ام اس قاصدک</span>
+            <span className="doc-logo__text">مستندات پیام کوتاه قاصدک</span>
           </Link>
         </div>
         <nav className="doc-header__nav" aria-label="Primary">
