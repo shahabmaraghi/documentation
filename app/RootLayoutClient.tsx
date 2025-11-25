@@ -60,17 +60,17 @@ const navSections: NavSection[] = [
     items: [
       {
         title: "ارسال پیامک اعتبار سنجی (OTP)",
-        href: "/guides/sendOtpSms#send-otp-sms",
+        href: "/guides/otp-service#send-otp-sms",
         method: "POST",
       },
       {
         title: "ارسال پیامک OTP جدید",
-        href: "/guides/send-otp-new#send-otp-new",
+        href: "/guides/otp-service#send-otp-new",
         method: "POST",
       },
       {
         title: "دریافت پارامترهای قالب OTP",
-        href: "/guides/otp-template-params#otp-template-params",
+        href: "/guides/otp-service#otp-template-params",
         method: "GET",
       },
     ],
@@ -92,12 +92,12 @@ const navSections: NavSection[] = [
     items: [
       {
         title: "100 پیام آخر",
-        href: "/inbox/latest-100#inbox-latest-100",
+        href: "/inbox#inbox-latest-100",
         method: "GET",
       },
       {
         title: "صفحه بندی",
-        href: "/inbox/paginated#inbox-paginated",
+        href: "/inbox#inbox-paginated",
         method: "GET",
       },
     ],
@@ -286,32 +286,14 @@ export default function RootLayoutClient({
     // Handle hash fragments for unified pages
     const hash = window.location.hash.slice(1);
     let activeHref = pathname;
-    const otpRoutes = [
-      "/guides/sendOtpSms",
-      "/guides/send-otp-new",
-      "/guides/otp-template-params",
-    ];
-    const inboxRoutes = [
-      "/inbox/latest-100",
-      "/inbox/paginated",
+    const unifiedRoutes = [
+      "/guides/web-service-send",
+      "/guides/otp-service",
+      "/inbox",
     ];
     
-    if (hash && (pathname === "/guides/web-service-send" || otpRoutes.includes(pathname || "") || inboxRoutes.includes(pathname || ""))) {
-      // For inbox routes, map hash to correct route
-      if (inboxRoutes.includes(pathname || "")) {
-        const sectionIdToRoute: Record<string, string> = {
-          "inbox-latest-100": "/inbox/latest-100",
-          "inbox-paginated": "/inbox/paginated",
-        };
-        const sectionRoute = sectionIdToRoute[hash];
-        if (sectionRoute) {
-          activeHref = `${sectionRoute}#${hash}`;
-        } else {
-          activeHref = `${pathname}#${hash}`;
-        }
-      } else {
-        activeHref = `${pathname}#${hash}`;
-      }
+    if (hash && unifiedRoutes.includes(pathname || "")) {
+      activeHref = `${pathname}#${hash}`;
     }
 
     setActiveMenuItem(activeHref);
@@ -456,7 +438,13 @@ export default function RootLayoutClient({
 
   // Handle hash navigation on page load and navigation
   useEffect(() => {
-    if (pathname !== "/guides/web-service-send") {
+    const unifiedRoutes = [
+      "/guides/web-service-send",
+      "/guides/otp-service",
+      "/inbox",
+    ];
+    
+    if (!unifiedRoutes.includes(pathname || "")) {
       return;
     }
 
@@ -515,20 +503,13 @@ export default function RootLayoutClient({
 
   // Scroll detection for unified pages with hash fragments
   useEffect(() => {
-    const otpRoutes = [
-      "/guides/sendOtpSms",
-      "/guides/send-otp-new",
-      "/guides/otp-template-params",
-    ];
-    const inboxRoutes = [
-      "/inbox/latest-100",
-      "/inbox/paginated",
+    const unifiedRoutes = [
+      "/guides/web-service-send",
+      "/guides/otp-service",
+      "/inbox",
     ];
     
-    const isOtpRoute = otpRoutes.includes(pathname || "");
-    const isInboxRoute = inboxRoutes.includes(pathname || "");
-    
-    if (pathname !== "/guides/web-service-send" && !isOtpRoute && !isInboxRoute) {
+    if (!unifiedRoutes.includes(pathname || "")) {
       return;
     }
 
@@ -554,32 +535,8 @@ export default function RootLayoutClient({
         const sectionId = (activeSection as HTMLElement).id;
         if (!sectionId) return;
         
-        // Map section ID to route for OTP service and Inbox
-        let newActiveHref = `${pathname}#${sectionId}`;
-        if (isOtpRoute) {
-          // For OTP routes, all sections are in the same unified file
-          // Map section ID to the appropriate route
-          const sectionIdToRoute: Record<string, string> = {
-            "send-otp-sms": "/guides/sendOtpSms",
-            "send-otp-new": "/guides/send-otp-new",
-            "otp-template-params": "/guides/otp-template-params",
-          };
-          const sectionRoute = sectionIdToRoute[sectionId];
-          if (sectionRoute) {
-            newActiveHref = `${sectionRoute}#${sectionId}`;
-          }
-        } else if (isInboxRoute) {
-          // For Inbox routes, all sections are in the same unified file
-          // Map section ID to the appropriate route
-          const sectionIdToRoute: Record<string, string> = {
-            "inbox-latest-100": "/inbox/latest-100",
-            "inbox-paginated": "/inbox/paginated",
-          };
-          const sectionRoute = sectionIdToRoute[sectionId];
-          if (sectionRoute) {
-            newActiveHref = `${sectionRoute}#${sectionId}`;
-          }
-        }
+        // For unified routes, use the current pathname with hash
+        const newActiveHref = `${pathname}#${sectionId}`;
         
         // Only update if different to avoid unnecessary re-renders
         if (activeMenuItem !== newActiveHref) {
@@ -618,19 +575,15 @@ export default function RootLayoutClient({
     };
   }, [pathname, activeMenuItem]);
   
-  // Handle hash navigation for OTP and Inbox routes
+  // Handle hash navigation for unified routes (legacy support for old routes)
   useEffect(() => {
-    const otpRoutes = [
-      "/guides/sendOtpSms",
-      "/guides/send-otp-new",
-      "/guides/otp-template-params",
-    ];
-    const inboxRoutes = [
-      "/inbox/latest-100",
-      "/inbox/paginated",
+    const unifiedRoutes = [
+      "/guides/web-service-send",
+      "/guides/otp-service",
+      "/inbox",
     ];
     
-    if (!pathname || (!otpRoutes.includes(pathname) && !inboxRoutes.includes(pathname))) {
+    if (!pathname || !unifiedRoutes.includes(pathname)) {
       return;
     }
 
@@ -650,30 +603,8 @@ export default function RootLayoutClient({
             behavior: "smooth"
           });
           
-          // Map section ID to route
-          const isOtpRoute = otpRoutes.includes(pathname);
-          const isInboxRoute = inboxRoutes.includes(pathname);
-          
-          if (isOtpRoute) {
-            const sectionIdToRoute: Record<string, string> = {
-              "send-otp-sms": "/guides/sendOtpSms",
-              "send-otp-new": "/guides/send-otp-new",
-              "otp-template-params": "/guides/otp-template-params",
-            };
-            const sectionRoute = sectionIdToRoute[hash];
-            if (sectionRoute) {
-              setActiveMenuItem(`${sectionRoute}#${hash}`);
-            }
-          } else if (isInboxRoute) {
-            const sectionIdToRoute: Record<string, string> = {
-              "inbox-latest-100": "/inbox/latest-100",
-              "inbox-paginated": "/inbox/paginated",
-            };
-            const sectionRoute = sectionIdToRoute[hash];
-            if (sectionRoute) {
-              setActiveMenuItem(`${sectionRoute}#${hash}`);
-            }
-          }
+          // For unified routes, use current pathname with hash
+          setActiveMenuItem(`${pathname}#${hash}`);
           return true;
         }
         return false;
@@ -933,18 +864,13 @@ export default function RootLayoutClient({
                                   return;
                                 }
                                 
-                                // Check if it's an OTP or Inbox route (same unified file)
-                                const otpRoutes = [
-                                  "/guides/sendOtpSms",
-                                  "/guides/send-otp-new",
-                                  "/guides/otp-template-params",
+                                // Check if it's a unified route (web-service-send, otp-service, inbox)
+                                const unifiedRoutes = [
+                                  "/guides/web-service-send",
+                                  "/guides/otp-service",
+                                  "/inbox",
                                 ];
-                                const inboxRoutes = [
-                                  "/inbox/latest-100",
-                                  "/inbox/paginated",
-                                ];
-                                const isOtpRoute = otpRoutes.includes(targetPath) && otpRoutes.includes(pathname || "");
-                                const isInboxRoute = inboxRoutes.includes(targetPath) && inboxRoutes.includes(pathname || "");
+                                const isUnifiedRoute = unifiedRoutes.includes(targetPath);
                                 
                                 if (hash && pathname === targetPath) {
                                   // Same page, just scroll to section
@@ -970,8 +896,8 @@ export default function RootLayoutClient({
                                   return;
                                 }
                                 
-                                // For OTP and Inbox routes, navigate between them (same unified file)
-                                if ((isOtpRoute || isInboxRoute) && hash) {
+                                // For unified routes with hash, navigate to the unified route
+                                if (isUnifiedRoute && hash) {
                                   e.preventDefault();
                                   // Set active menu item immediately
                                   setActiveMenuItem(item.href);

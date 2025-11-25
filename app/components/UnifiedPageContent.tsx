@@ -13,13 +13,16 @@ import UnifiedInboxMDX from "../unified-inbox.mdx";
 const routeToUnifiedFile: Record<string, React.ComponentType> = {
   "/": UnifiedOverviewMDX,
   "/guides/sdk": UnifiedSdkMDX,
+  "/guides/web-service-send": UnifiedSendServiceMDX,
   "/guides/send-single": UnifiedSendServiceMDX,
   "/guides/send-bulk": UnifiedSendServiceMDX,
   "/guides/send-bulk-peer-to-peer": UnifiedSendServiceMDX,
+  "/guides/otp-service": UnifiedOtpServiceMDX,
   "/guides/sendOtpSms": UnifiedOtpServiceMDX,
   "/guides/send-otp-new": UnifiedOtpServiceMDX,
   "/guides/otp-template-params": UnifiedOtpServiceMDX,
   "/reports/outbox-status": UnifiedReportsMDX,
+  "/inbox": UnifiedInboxMDX,
   "/inbox/latest-100": UnifiedInboxMDX,
   "/inbox/paginated": UnifiedInboxMDX,
 };
@@ -120,11 +123,17 @@ export function UnifiedPageContent({ activeSectionId }: UnifiedPageContentProps)
       if (activeSectionId) {
         updateScalarVisibility(activeSectionId);
       } else {
-        // If no activeSectionId, try to determine from pathname
-        const inboxRoutes = ["/inbox/latest-100", "/inbox/paginated"];
-        if (pathname && inboxRoutes.includes(pathname)) {
-          const sectionId = pathname === "/inbox/latest-100" ? "inbox-latest-100" : "inbox-paginated";
-          updateScalarVisibility(sectionId);
+        // If no activeSectionId, try to determine from URL hash or pathname
+        const hash = typeof window !== "undefined" ? window.location.hash.slice(1) : "";
+        if (hash) {
+          updateScalarVisibility(hash);
+        } else {
+          // Fallback: try to determine from pathname (legacy routes)
+          const inboxRoutes = ["/inbox/latest-100", "/inbox/paginated"];
+          if (pathname && inboxRoutes.includes(pathname)) {
+            const sectionId = pathname === "/inbox/latest-100" ? "inbox-latest-100" : "inbox-paginated";
+            updateScalarVisibility(sectionId);
+          }
         }
       }
     }, 100);
@@ -297,7 +306,14 @@ export function UnifiedPageContent({ activeSectionId }: UnifiedPageContentProps)
   useEffect(() => {
     if (!pathname) return;
     
-    // Routes that should show ALL sections (like OTP service and Inbox)
+    // Unified routes that should show ALL sections
+    const unifiedRoutes = [
+      "/guides/web-service-send",
+      "/guides/otp-service",
+      "/inbox",
+    ];
+    
+    // Routes that should show ALL sections (legacy routes - for backward compatibility)
     const showAllSectionsRoutes = [
       "/guides/sendOtpSms",
       "/guides/send-otp-new",
@@ -313,8 +329,11 @@ export function UnifiedPageContent({ activeSectionId }: UnifiedPageContentProps)
       "/guides/send-bulk-peer-to-peer",
     ];
     
-    // For OTP service routes, show all sections and scroll to matching one
-    if (showAllSectionsRoutes.includes(pathname)) {
+    // Check if current route is a unified route
+    const isUnifiedRoute = unifiedRoutes.includes(pathname);
+    
+    // For unified routes and legacy routes, show all sections and scroll to matching one
+    if (isUnifiedRoute || showAllSectionsRoutes.includes(pathname)) {
       const unifiedContent = document.querySelector(".unified-page-content");
       if (!unifiedContent) return;
 
