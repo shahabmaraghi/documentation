@@ -1,0 +1,127 @@
+import { OperationBox } from "./components/OperationBox";
+import { ScalarApiReference } from "./components/ScalarApiReference";
+import { sendOtpApiSpec } from "./guides/sendOtpSms/api-spec";
+import { sendOtpSmsNewApiSpec } from "./guides/send-otp-new/api-spec";
+import { otpTemplateParamsApiSpec } from "./guides/otp-template-params/api-spec";
+
+<section id="send-otp-sms" className="unified-section" data-section-route="/guides/sendOtpSms">
+  <div className="unified-section__header">
+    <h2 className="unified-section__title">ارسال پیامک اعتبار سنجی (OTP)</h2>
+  </div>
+  <div className="unified-section__content">
+    <div className="operation-hero">
+      <div className="operation-hero__text">
+        <p>
+          سرویس اعتبارسنجی به شما این امکان را می‌دهد که بدون نیاز به داشتن خط خدماتی و طی کردن پروسه
+          زمان‌بر تهیه آن بتوانید از طریق وب سرویس به راحتی و بالاترین سرعت ممکن پیام‌های خود مانند: کد
+          فعال‌سازی، شماره چک و فاکتور، کد قرعه‌کشی و... را به تمامی کاربران اعم از فیلتر و غیر فیلتر
+          ارسال نمایید. در متن قالب نام برند، شرکت و یا خدمات خود را حتما ذکر نمایید و حداقل حاوی یک
+          پارامتر `%param1%` باشد. حداکثر از ۱۰ پارامتر `%param1%`، `%param2%`، ...، `%param10%`
+          می‌توان استفاده کرد.
+        </p>
+      </div>
+
+      <OperationBox
+        method="POST"
+        endpoint="https://gateway.ghasedak.me/rest/api/v1/WebService/SendOtpWithParams"
+      />
+    </div>
+
+    <div className="scalar-api-wrapper" data-scalar-section="send-otp-sms">
+      <ScalarApiReference
+        key="scalar-send-otp"
+        instanceKey="scalar-send-otp"
+        spec={sendOtpApiSpec}
+      />
+    </div>
+
+    <h2>جدول خطاها</h2>
+
+    <p>چنانچه درخواست‌های ارسالی شما با خطای خاصی مواجه شد، برای آگاهی از دلایل آن می‌توانید از <a href="/error-table">جدول خطاها</a> کمک بگیرید.</p>
+  </div>
+</section>
+
+<div className="unified-section__divider" aria-hidden="true" />
+
+<section id="send-otp-new" className="unified-section" data-section-route="/guides/send-otp-new">
+  <div className="unified-section__header">
+    <h2 className="unified-section__title">ارسال پیامک OTP جدید</h2>
+  </div>
+  <div className="unified-section__content">
+    <div className="operation-hero">
+      <div className="operation-hero__text">
+        <p>
+          متد <strong>SendOtpSMS</strong> نسخه جدید سرویس اعتبارسنجی قاصدک است که بر پایه
+          قالب‌های تأییدشده پیام‌های OTP را با بالاترین نرخ تحویل ارسال می‌کند. کافی است
+          نام قالب، پارامترهای ورودی و گیرندگان را مشخص کنید تا پیام‌های فعال‌سازی یا
+          اطلاع‌رسانی حساس بدون نیاز به خط خدماتی ارسال شوند.
+        </p>
+        <ul>
+          <li>امکان ارسال هم‌زمان برای چند گیرنده در یک درخواست</li>
+          <li>پشتیبانی از زمان‌بندی ارسال با پارامتر <code>sendDate</code></li>
+          <li>قابلیت انتخاب ارسال متنی یا صوتی با <code>isVoice</code></li>
+          <li>ردیابی دقیق هر گیرنده با <code>clientReferenceId</code></li>
+        </ul>
+      </div>
+
+      <OperationBox
+        method="POST"
+        endpoint="https://gateway.ghasedak.me/rest/api/v1/WebService/SendOtpSMS"
+      />
+    </div>
+
+    <div className="scalar-api-wrapper" data-scalar-section="send-otp-new">
+      <ScalarApiReference
+        key="scalar-send-otp-new"
+        instanceKey="scalar-send-otp-new"
+        spec={sendOtpSmsNewApiSpec}
+      />
+    </div>
+
+    <h2>نکات پیاده‌سازی</h2>
+
+    <ul>
+      <li>پارامترهای ورودی باید دقیقاً مطابق قالب تعریف شده در پنل قاصدک باشند.</li>
+      <li>مقدار <code>udh</code> تنها برای خطوط 9000 کاربرد دارد و در صورت فعال بودن، پیام به صورت 16 بیتی ارسال می‌شود.</li>
+      <li>با تنظیم <code>isVoice</code> می‌توانید همان قالب را به صورت پیام صوتی ارسال کنید.</li>
+      <li>شناسه‌های بازگشتی (messageId، clientReferenceId) برای پایش وضعیت ارسال در سیستم‌های داخلی بسیار مفید هستند.</li>
+    </ul>
+
+    <h2>جدول خطاها</h2>
+
+    <p>چنانچه درخواست‌های ارسالی شما با خطای خاصی مواجه شد، برای آگاهی از دلایل آن می‌توانید از <a href="/error-table">جدول خطاها</a> کمک بگیرید.</p>
+  </div>
+</section>
+
+<div className="unified-section__divider" aria-hidden="true" />
+
+<section id="otp-template-params" className="unified-section" data-section-route="/guides/otp-template-params">
+  <div className="unified-section__header">
+    <h2 className="unified-section__title">دریافت پارامترهای قالب OTP</h2>
+  </div>
+  <div className="unified-section__content">
+    <div className="operation-hero">
+      <div className="operation-hero__text">
+        <p>از این متد می توانید برای دریافت پارامترهای قالب OTP استفاده کنید.</p>
+      </div>
+
+      <OperationBox
+        method="GET"
+        endpoint="https://gateway.ghasedak.me/rest/api/v1/WebService/GetOtpTemplateParameters"
+      />
+    </div>
+
+    <div className="scalar-api-wrapper" data-scalar-section="otp-template-params">
+      <ScalarApiReference
+        key="scalar-otp-template-params"
+        instanceKey="scalar-otp-template-params"
+        spec={otpTemplateParamsApiSpec}
+      />
+    </div>
+
+    <h2>جدول خطاها</h2>
+
+    <p>چنانچه درخواست‌های ارسالی شما با خطای خاصی مواجه شد، برای آگاهی از دلایل آن می‌توانید از <a href="/error-table">جدول خطاها</a> کمک بگیرید.</p>
+  </div>
+</section>
+

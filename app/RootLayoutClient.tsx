@@ -38,11 +38,11 @@ const navSections: NavSection[] = [
     title: "وب سرویس ارسال",
     description: "انواع روش‌های ارسال پیامک از طریق وب‌سرویس",
     items: [
-      { title: "ارسال تکی", href: "/guides/send-single", method: "POST" },
-      { title: "ارسال گروهی", href: "/guides/send-bulk", method: "POST" },
+      { title: "ارسال تکی", href: "/guides/web-service-send#send-single", method: "POST" },
+      { title: "ارسال گروهی", href: "/guides/web-service-send#send-bulk", method: "POST" },
       {
         title: "ارسال گروهی نظیر به نظیر",
-        href: "/guides/send-bulk-peer-to-peer",
+        href: "/guides/web-service-send#send-bulk-peer-to-peer",
         method: "POST",
       },
     ],
@@ -60,17 +60,17 @@ const navSections: NavSection[] = [
     items: [
       {
         title: "ارسال پیامک اعتبار سنجی (OTP)",
-        href: "/guides/sendOtpSms",
+        href: "/guides/sendOtpSms#send-otp-sms",
         method: "POST",
       },
       {
         title: "ارسال پیامک OTP جدید",
-        href: "/guides/send-otp-new",
+        href: "/guides/send-otp-new#send-otp-new",
         method: "POST",
       },
       {
         title: "دریافت پارامترهای قالب OTP",
-        href: "/guides/otp-template-params",
+        href: "/guides/otp-template-params#otp-template-params",
         method: "GET",
       },
     ],
@@ -92,12 +92,12 @@ const navSections: NavSection[] = [
     items: [
       {
         title: "100 پیام آخر",
-        href: "/inbox/latest-100",
+        href: "/inbox/latest-100#inbox-latest-100",
         method: "GET",
       },
       {
         title: "صفحه بندی",
-        href: "/inbox/paginated",
+        href: "/inbox/paginated#inbox-paginated",
         method: "GET",
       },
     ],
@@ -283,9 +283,43 @@ export default function RootLayoutClient({
       });
     }
 
-    setActiveMenuItem(pathname);
+    // Handle hash fragments for unified pages
+    const hash = window.location.hash.slice(1);
+    let activeHref = pathname;
+    const otpRoutes = [
+      "/guides/sendOtpSms",
+      "/guides/send-otp-new",
+      "/guides/otp-template-params",
+    ];
+    const inboxRoutes = [
+      "/inbox/latest-100",
+      "/inbox/paginated",
+    ];
+    
+    if (hash && (pathname === "/guides/web-service-send" || otpRoutes.includes(pathname || "") || inboxRoutes.includes(pathname || ""))) {
+      // For inbox routes, map hash to correct route
+      if (inboxRoutes.includes(pathname || "")) {
+        const sectionIdToRoute: Record<string, string> = {
+          "inbox-latest-100": "/inbox/latest-100",
+          "inbox-paginated": "/inbox/paginated",
+        };
+        const sectionRoute = sectionIdToRoute[hash];
+        if (sectionRoute) {
+          activeHref = `${sectionRoute}#${hash}`;
+        } else {
+          activeHref = `${pathname}#${hash}`;
+        }
+      } else {
+        activeHref = `${pathname}#${hash}`;
+      }
+    }
+
+    setActiveMenuItem(activeHref);
     const parentSection = navSections.find((section) =>
-      section.items.some((item) => item.href === pathname)
+      section.items.some((item) => {
+        const itemPath = item.href.split("#")[0];
+        return itemPath === pathname || item.href === activeHref;
+      })
     );
     if (parentSection) {
       setExpandedSections((current) => ({
@@ -295,7 +329,12 @@ export default function RootLayoutClient({
     }
 
     if (isManual) {
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      // Handle hash navigation - let the dedicated useEffect handle scrolling
+      // to ensure content is fully loaded
+      if (!hash) {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+      // Hash scrolling is handled by the dedicated useEffect below
     }
 
     const hideLoadingTimer = window.setTimeout(() => {
@@ -409,13 +448,268 @@ export default function RootLayoutClient({
   }, []);
 
   useEffect(() => {
-    if (isMobileViewport) {
-      setSidebarOpen(true);
+    // Keep sidebar closed by default on mobile
+    if (!isMobileViewport) {
+      setSidebarOpen(false);
+    }
+  }, [isMobileViewport]);
+
+  // Handle hash navigation on page load and navigation
+  useEffect(() => {
+    if (pathname !== "/guides/web-service-send") {
       return;
     }
 
-    setSidebarOpen(false);
-  }, [isMobileViewport]);
+    const hash = window.location.hash.slice(1);
+    if (hash) {
+      // Wait for content to be fully rendered and then scroll
+      const scrollToSection = () => {
+        const targetElement = document.getElementById(hash);
+        if (targetElement) {
+          // Calculate offset for header
+          const headerOffset = 80;
+          const elementPosition = targetElement.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: "smooth"
+          });
+          setActiveMenuItem(`${pathname}#${hash}`);
+          return true;
+        }
+        return false;
+      };
+
+      // Wait for navigation to complete and content to render
+      let timer1: NodeJS.Timeout;
+      let timer2: NodeJS.Timeout;
+      let timer3: NodeJS.Timeout;
+
+      timer1 = setTimeout(() => {
+        if (scrollToSection()) {
+          return;
+        }
+        // If element not found, try again after a longer delay
+        timer2 = setTimeout(() => {
+          if (scrollToSection()) {
+            return;
+          }
+          // Final attempt after content is definitely loaded
+          timer3 = setTimeout(() => {
+            scrollToSection();
+          }, 500);
+        }, 300);
+      }, 200);
+
+      return () => {
+        clearTimeout(timer1);
+        if (timer2) clearTimeout(timer2);
+        if (timer3) clearTimeout(timer3);
+      };
+    } else {
+      // No hash, ensure active menu item is set
+      setActiveMenuItem(pathname);
+    }
+  }, [pathname]);
+
+  // Scroll detection for unified pages with hash fragments
+  useEffect(() => {
+    const otpRoutes = [
+      "/guides/sendOtpSms",
+      "/guides/send-otp-new",
+      "/guides/otp-template-params",
+    ];
+    const inboxRoutes = [
+      "/inbox/latest-100",
+      "/inbox/paginated",
+    ];
+    
+    const isOtpRoute = otpRoutes.includes(pathname || "");
+    const isInboxRoute = inboxRoutes.includes(pathname || "");
+    
+    if (pathname !== "/guides/web-service-send" && !isOtpRoute && !isInboxRoute) {
+      return;
+    }
+
+    const handleScroll = () => {
+      const sections = document.querySelectorAll<HTMLElement>(".unified-section");
+      const scrollPosition = window.scrollY + window.innerHeight / 3;
+
+      let activeSection: HTMLElement | null = null;
+      let minDistance = Infinity;
+
+      sections.forEach((section) => {
+        const rect = section.getBoundingClientRect();
+        const sectionTop = rect.top + window.scrollY;
+        const distance = Math.abs(scrollPosition - sectionTop);
+
+        if (distance < minDistance && rect.top <= window.innerHeight / 2) {
+          minDistance = distance;
+          activeSection = section;
+        }
+      });
+
+      if (activeSection) {
+        const sectionId = (activeSection as HTMLElement).id;
+        if (!sectionId) return;
+        
+        // Map section ID to route for OTP service and Inbox
+        let newActiveHref = `${pathname}#${sectionId}`;
+        if (isOtpRoute) {
+          // For OTP routes, all sections are in the same unified file
+          // Map section ID to the appropriate route
+          const sectionIdToRoute: Record<string, string> = {
+            "send-otp-sms": "/guides/sendOtpSms",
+            "send-otp-new": "/guides/send-otp-new",
+            "otp-template-params": "/guides/otp-template-params",
+          };
+          const sectionRoute = sectionIdToRoute[sectionId];
+          if (sectionRoute) {
+            newActiveHref = `${sectionRoute}#${sectionId}`;
+          }
+        } else if (isInboxRoute) {
+          // For Inbox routes, all sections are in the same unified file
+          // Map section ID to the appropriate route
+          const sectionIdToRoute: Record<string, string> = {
+            "inbox-latest-100": "/inbox/latest-100",
+            "inbox-paginated": "/inbox/paginated",
+          };
+          const sectionRoute = sectionIdToRoute[sectionId];
+          if (sectionRoute) {
+            newActiveHref = `${sectionRoute}#${sectionId}`;
+          }
+        }
+        
+        // Only update if different to avoid unnecessary re-renders
+        if (activeMenuItem !== newActiveHref) {
+          setActiveMenuItem(newActiveHref);
+          
+          // Update URL hash without triggering scroll
+          if (window.location.hash !== `#${sectionId}`) {
+            window.history.replaceState(null, "", `#${sectionId}`);
+          }
+        }
+      }
+    };
+
+    // Initial check after a delay to ensure content is rendered
+    const initialTimer = setTimeout(() => {
+      handleScroll();
+    }, 500);
+
+    // Throttle scroll events
+    let ticking = false;
+    const throttledHandleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          handleScroll();
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    window.addEventListener("scroll", throttledHandleScroll, { passive: true });
+    
+    return () => {
+      clearTimeout(initialTimer);
+      window.removeEventListener("scroll", throttledHandleScroll);
+    };
+  }, [pathname, activeMenuItem]);
+  
+  // Handle hash navigation for OTP and Inbox routes
+  useEffect(() => {
+    const otpRoutes = [
+      "/guides/sendOtpSms",
+      "/guides/send-otp-new",
+      "/guides/otp-template-params",
+    ];
+    const inboxRoutes = [
+      "/inbox/latest-100",
+      "/inbox/paginated",
+    ];
+    
+    if (!pathname || (!otpRoutes.includes(pathname) && !inboxRoutes.includes(pathname))) {
+      return;
+    }
+
+    const hash = window.location.hash.slice(1);
+    if (hash) {
+      // Wait for content to be fully rendered and then scroll
+      const scrollToSection = () => {
+        const targetElement = document.getElementById(hash);
+        if (targetElement) {
+          // Calculate offset for header
+          const headerOffset = 80;
+          const elementPosition = targetElement.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: "smooth"
+          });
+          
+          // Map section ID to route
+          const isOtpRoute = otpRoutes.includes(pathname);
+          const isInboxRoute = inboxRoutes.includes(pathname);
+          
+          if (isOtpRoute) {
+            const sectionIdToRoute: Record<string, string> = {
+              "send-otp-sms": "/guides/sendOtpSms",
+              "send-otp-new": "/guides/send-otp-new",
+              "otp-template-params": "/guides/otp-template-params",
+            };
+            const sectionRoute = sectionIdToRoute[hash];
+            if (sectionRoute) {
+              setActiveMenuItem(`${sectionRoute}#${hash}`);
+            }
+          } else if (isInboxRoute) {
+            const sectionIdToRoute: Record<string, string> = {
+              "inbox-latest-100": "/inbox/latest-100",
+              "inbox-paginated": "/inbox/paginated",
+            };
+            const sectionRoute = sectionIdToRoute[hash];
+            if (sectionRoute) {
+              setActiveMenuItem(`${sectionRoute}#${hash}`);
+            }
+          }
+          return true;
+        }
+        return false;
+      };
+
+      // Wait for navigation to complete and content to render
+      let timer1: NodeJS.Timeout;
+      let timer2: NodeJS.Timeout;
+      let timer3: NodeJS.Timeout;
+
+      timer1 = setTimeout(() => {
+        if (scrollToSection()) {
+          return;
+        }
+        // If element not found, try again after a longer delay
+        timer2 = setTimeout(() => {
+          if (scrollToSection()) {
+            return;
+          }
+          // Final attempt after content is definitely loaded
+          timer3 = setTimeout(() => {
+            scrollToSection();
+          }, 500);
+        }, 300);
+      }, 200);
+
+      return () => {
+        clearTimeout(timer1);
+        if (timer2) clearTimeout(timer2);
+        if (timer3) clearTimeout(timer3);
+      };
+    } else {
+      // No hash, ensure active menu item is set based on pathname
+      setActiveMenuItem(pathname);
+    }
+  }, [pathname]);
 
   useEffect(() => {
     if (sidebarOpen && isMobileViewport) {
@@ -476,7 +770,18 @@ export default function RootLayoutClient({
               )}
             </svg>
           </button>
-          <Link href="/" className="doc-logo">
+          <Link 
+            href="/" 
+            className="doc-logo"
+            onClick={(e) => {
+              // Clear any hash from URL when going to home
+              if (window.location.hash) {
+                e.preventDefault();
+                window.history.replaceState(null, "", "/");
+                router.push("/");
+              }
+            }}
+          >
             <span className="doc-logo__symbol">
               <img src="/images/logo.png" alt="logo" width={32} height={32} />
             </span>
@@ -587,7 +892,13 @@ export default function RootLayoutClient({
                   {isExpanded && (
                     <ul id={sectionId}>
                       {section.items.map((item) => {
-                        const isActive = activeMenuItem === item.href;
+                        // Check if active - handle both with and without hash
+                        const itemPath = item.href.split("#")[0];
+                        const activePath = activeMenuItem.split("#")[0];
+                        const itemHash = item.href.split("#")[1];
+                        const activeHash = activeMenuItem.split("#")[1];
+                        const isActive = activePath === itemPath && 
+                          (itemHash ? activeHash === itemHash : !activeHash || activeHash === itemHash);
                         return (
                           <li
                             key={item.href}
@@ -603,14 +914,79 @@ export default function RootLayoutClient({
                               className={
                                 isActive ? "doc-sidebar__link--active" : ""
                               }
-                              onClick={() => {
-                            captureSnapshot();
+                              onClick={(e) => {
+                                // Handle hash navigation - if same page, just scroll
+                                const hash = item.href.split("#")[1];
+                                const targetPath = item.href.split("#")[0];
+                                
+                                // Check if it's an OTP or Inbox route (same unified file)
+                                const otpRoutes = [
+                                  "/guides/sendOtpSms",
+                                  "/guides/send-otp-new",
+                                  "/guides/otp-template-params",
+                                ];
+                                const inboxRoutes = [
+                                  "/inbox/latest-100",
+                                  "/inbox/paginated",
+                                ];
+                                const isOtpRoute = otpRoutes.includes(targetPath) && otpRoutes.includes(pathname || "");
+                                const isInboxRoute = inboxRoutes.includes(targetPath) && inboxRoutes.includes(pathname || "");
+                                
+                                if (hash && pathname === targetPath) {
+                                  // Same page, just scroll to section
+                                  e.preventDefault();
+                                  const targetElement = document.getElementById(hash);
+                                  if (targetElement) {
+                                    // Calculate offset for header
+                                    const headerOffset = 80;
+                                    const elementPosition = targetElement.getBoundingClientRect().top;
+                                    const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+                                    window.scrollTo({
+                                      top: offsetPosition,
+                                      behavior: "smooth"
+                                    });
+                                    setActiveMenuItem(item.href);
+                                    // Update URL hash
+                                    window.history.pushState(null, "", `#${hash}`);
+                                  }
+                                  if (isMobileViewport) {
+                                    setSidebarOpen(false);
+                                  }
+                                  return;
+                                }
+                                
+                                // For OTP and Inbox routes, navigate between them (same unified file)
+                                if ((isOtpRoute || isInboxRoute) && hash) {
+                                  e.preventDefault();
+                                  // Set active menu item immediately
+                                  setActiveMenuItem(item.href);
+                                  captureSnapshot();
+                                  isManualNavigationRef.current = true;
+                                  setIsNavigating(true);
+                                  if (isMobileViewport) {
+                                    setSidebarOpen(false);
+                                  }
+                                  router.push(`${targetPath}#${hash}`);
+                                  return;
+                                }
+                                
+                                // Different page, do full navigation
+                                captureSnapshot();
                                 isManualNavigationRef.current = true;
                                 setIsNavigating(true);
                                 if (isMobileViewport) {
                                   setSidebarOpen(false);
                                 }
-                                setActiveMenuItem(item.href);
+                                
+                                if (hash) {
+                                  e.preventDefault();
+                                  router.push(`${targetPath}#${hash}`);
+                                  // The hash navigation useEffect will handle scrolling after page loads
+                                  setActiveMenuItem(item.href);
+                                } else {
+                                  setActiveMenuItem(item.href);
+                                }
                               }}
                             >
                               <span className="doc-sidebar__link-text">
@@ -762,4 +1138,5 @@ function DocContentTrail({
     </>
   );
 }
+
 

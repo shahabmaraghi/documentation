@@ -1,0 +1,67 @@
+import { OperationBox } from "./components/OperationBox";
+import { ScalarApiReference } from "./components/ScalarApiReference";
+import { latest100ApiSpec } from "./inbox/latest-100/api-spec";
+import { paginatedApiSpec } from "./inbox/paginated/api-spec";
+
+<section id="inbox-latest-100" className="unified-section" data-section-route="/inbox/latest-100">
+  <div className="unified-section__header">
+    <h2 className="unified-section__title">100 پیام آخر</h2>
+  </div>
+  <div className="unified-section__content">
+    <div className="operation-hero">
+      <div className="operation-hero__text">
+        <p>از این متد برای گرفتن لیست پیام های دریافتی استفاده می شود. این متد آخرین 100 پیام دریافتی را برمی‌گرداند.</p>
+      </div>
+
+      <OperationBox
+        method="GET"
+        endpoint="https://gateway.ghasedak.me/rest/api/v1/WebService/GetReceivedSmses"
+      />
+    </div>
+
+    <div className="scalar-api-wrapper" data-scalar-section="inbox-latest-100">
+      <ScalarApiReference
+        key="inbox-latest-100-scalar"
+        instanceKey="inbox-latest-100-scalar"
+        spec={latest100ApiSpec}
+      />
+    </div>
+
+    <h2>جدول خطاها</h2>
+
+    <p>چنانچه درخواست‌های ارسالی شما با خطای خاصی مواجه شد، برای آگاهی از دلایل آن می‌توانید از <a href="/error-table">جدول خطاها</a> کمک بگیرید.</p>
+  </div>
+</section>
+
+<div className="unified-section__divider" aria-hidden="true" />
+
+<section id="inbox-paginated" className="unified-section" data-section-route="/inbox/paginated">
+  <div className="unified-section__header">
+    <h2 className="unified-section__title">صفحه بندی</h2>
+  </div>
+  <div className="unified-section__content">
+    <div className="operation-hero">
+      <div className="operation-hero__text">
+        <p>از این متد برای گرفتن لیست پیام های دریافتی به صورت صفحه بندی استفاده می شود. در این متد حداکثر 200 پیام بازگردانده می شود.</p>
+      </div>
+
+      <OperationBox
+        method="GET"
+        endpoint="https://gateway.ghasedak.me/rest/api/v1/WebService/GetReceivedSmsesPaging"
+      />
+    </div>
+
+    <div className="scalar-api-wrapper" data-scalar-section="inbox-paginated">
+      <ScalarApiReference
+        key="inbox-paginated-scalar"
+        instanceKey="inbox-paginated-scalar"
+        spec={paginatedApiSpec}
+      />
+    </div>
+
+    <h2>جدول خطاها</h2>
+
+    <p>چنانچه درخواست‌های ارسالی شما با خطای خاصی مواجه شد، برای آگاهی از دلایل آن می‌توانید از <a href="/error-table">جدول خطاها</a> کمک بگیرید.</p>
+  </div>
+</section>
+

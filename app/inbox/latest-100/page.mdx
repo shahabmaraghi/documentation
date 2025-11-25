@@ -1,23 +1,3 @@
-import { ScalarApiReference } from "@/app/components/ScalarApiReference";
-import { OperationBox } from "@/app/components/OperationBox";
-import { latest100ApiSpec } from "./api-spec";
+import { UnifiedPageContent } from "@/app/components/UnifiedPageContent";
 
-# 100 پیام آخر
-
-<div className="operation-hero">
-  <div className="operation-hero__text">
-    <p>از این متد برای گرفتن لیست پیام های دریافتی استفاده می شود. این متد آخرین 100 پیام دریافتی را برمی‌گرداند.</p>
-  </div>
-
-  <OperationBox
-    method="GET"
-    endpoint="https://gateway.ghasedak.me/rest/api/v1/WebService/GetReceivedSmses"
-  />
-</div>
-
-<ScalarApiReference spec={latest100ApiSpec} />
-
-## جدول خطاها
-
-چنانچه درخواست‌های ارسالی شما با خطای خاصی مواجه شد، برای آگاهی از دلایل آن می‌توانید از [جدول خطاها](/error-table) کمک بگیرید.
-
+<UnifiedPageContent activeSectionId="inbox-latest-100" />

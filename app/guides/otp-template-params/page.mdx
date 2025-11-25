@@ -1,25 +1,4 @@
-import { ScalarApiReference } from "@/app/components/ScalarApiReference";
-import { OperationBox } from "@/app/components/OperationBox";
-import { otpTemplateParamsApiSpec } from "./api-spec";
+import { UnifiedPageContent } from "@/app/components/UnifiedPageContent";
 
-# دریافت پارامترهای قالب OTP
-
-<div className="operation-hero">
-  <div className="operation-hero__text">
-    <p>از این متد می توانید برای دریافت پارامترهای قالب OTP استفاده کنید.</p>
-  </div>
-
-  <OperationBox
-    method="GET"
-    endpoint="https://gateway.ghasedak.me/rest/api/v1/WebService/GetOtpTemplateParameters"
-  />
-</div>
-
-<div key="scalar-otp-template-params">
-  <ScalarApiReference spec={otpTemplateParamsApiSpec} />
-</div>
-
-## جدول خطاها
-
-چنانچه درخواست‌های ارسالی شما با خطای خاصی مواجه شد، برای آگاهی از دلایل آن می‌توانید از [جدول خطاها](/error-table) کمک بگیرید.
+<UnifiedPageContent activeSectionId="otp-template-params" />
 

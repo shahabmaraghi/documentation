@@ -1,0 +1,101 @@
+import { OperationBox } from "@/app/components/OperationBox";
+import { ScalarApiReference } from "@/app/components/ScalarApiReference";
+import { sendSingleSmsApiSpec } from "../send-single/api-spec";
+import { sendBulkApiSpec } from "../send-bulk/api-spec";
+import { sendGroupSmsPeerToPeerApiSpec } from "../send-bulk-peer-to-peer/api-spec";
+
+<section id="send-single" className="unified-section" data-section-route="/guides/send-single">
+  <div className="unified-section__header">
+    <h2 className="unified-section__title">ارسال تکی</h2>
+  </div>
+  <div className="unified-section__content">
+    <div className="operation-hero">
+      <div className="operation-hero__text">
+        <p>از این متد برای ارسال پیامک به صورت تکی استفاده می شود.</p>
+      </div>
+
+      <OperationBox
+        method="POST"
+        endpoint="https://gateway.ghasedak.me/rest/api/v1/WebService/SendSingleSms"
+      />
+    </div>
+
+    <ScalarApiReference
+      key="send-single-scalar"
+      instanceKey="send-single-scalar"
+      spec={sendSingleSmsApiSpec}
+    />
+
+    <h2>جدول خطاها</h2>
+
+    <p>چنانچه درخواست‌های ارسالی شما با خطای خاصی مواجه شد، برای آگاهی از دلایل آن می‌توانید از <a href="/error-table">جدول خطاها</a> کمک بگیرید.</p>
+  </div>
+</section>
+
+<div className="unified-section__divider" aria-hidden="true" />
+
+<section id="send-bulk" className="unified-section" data-section-route="/guides/send-bulk">
+  <div className="unified-section__header">
+    <h2 className="unified-section__title">ارسال گروهی</h2>
+  </div>
+  <div className="unified-section__content">
+    <div className="operation-hero">
+      <div className="operation-hero__text">
+        <p>
+          از این متد برای ارسال پیامک گروهی به گیرندگان مختلف استفاده می شود. به این صورت که شماره
+          فرستنده و متن پیام فقط یک شماره می تواند باشد و نیازی نیست به ازای هر گیرنده، یک شماره
+          فرستنده وارد گردد.
+        </p>
+      </div>
+
+      <OperationBox
+        method="POST"
+        endpoint="https://gateway.ghasedak.me/rest/api/v1/WebService/SendBulkSMS"
+      />
+    </div>
+
+    <ScalarApiReference
+      key="send-bulk-scalar"
+      instanceKey="send-bulk-scalar"
+      spec={sendBulkApiSpec}
+    />
+
+    <h2>جدول خطاها</h2>
+
+    <p>چنانچه درخواست‌های ارسالی شما با خطای خاصی مواجه شد، برای آگاهی از دلایل آن می‌توانید از <a href="/error-table">جدول خطاها</a> کمک بگیرید.</p>
+  </div>
+</section>
+
+<div className="unified-section__divider" aria-hidden="true" />
+
+<section id="send-bulk-peer-to-peer" className="unified-section" data-section-route="/guides/send-bulk-peer-to-peer">
+  <div className="unified-section__header">
+    <h2 className="unified-section__title">ارسال گروهی پیامک نظیر به نظیر</h2>
+  </div>
+  <div className="unified-section__content">
+    <div className="operation-hero">
+      <div className="operation-hero__text">
+        <p>
+          از این متد برای ارسال پیامک به صورت گروهی با متون مختلف و شماره فرستندگان و گیرندگان مختلف
+          استفاده می‌شود.
+        </p>
+      </div>
+
+      <OperationBox
+        method="POST"
+        endpoint="https://gateway.ghasedak.me/rest/api/v1/WebService/SendPairToPairSMS"
+      />
+    </div>
+
+    <ScalarApiReference
+      key="send-bulk-peer-to-peer-scalar"
+      instanceKey="send-bulk-peer-to-peer-scalar"
+      spec={sendGroupSmsPeerToPeerApiSpec}
+    />
+
+    <h2>جدول خطاها</h2>
+
+    <p>چنانچه درخواست‌های ارسالی شما با خطای خاصی مواجه شد، برای آگاهی از دلایل آن می‌توانید از <a href="/error-table">جدول خطاها</a> کمک بگیرید.</p>
+  </div>
+</section>
+

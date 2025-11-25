@@ -661,6 +661,74 @@ func main() {
                 }
               }
             }
+          },
+          "400": {
+            description: "درخواست نامعتبر",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    isSuccess: {
+                      type: "boolean",
+                      description: "وضعیت پاسخ وب سرویس"
+                    },
+                    statusCode: {
+                      type: "integer",
+                      description: "کد وضعیت"
+                    },
+                    message: {
+                      type: "string",
+                      description: "پیام خطا"
+                    }
+                  }
+                },
+                examples: {
+                  example1: {
+                    summary: "نمونه خطای 400",
+                    value: {
+                      isSuccess: false,
+                      statusCode: 400,
+                      message: "پارامترهای ورودی نامعتبر است"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            description: "خطای سرور",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    isSuccess: {
+                      type: "boolean",
+                      description: "وضعیت پاسخ وب سرویس"
+                    },
+                    statusCode: {
+                      type: "integer",
+                      description: "کد وضعیت"
+                    },
+                    message: {
+                      type: "string",
+                      description: "پیام خطا"
+                    }
+                  }
+                },
+                examples: {
+                  example1: {
+                    summary: "نمونه خطای 500",
+                    value: {
+                      isSuccess: false,
+                      statusCode: 500,
+                      message: "خطای داخلی سرور"
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }

@@ -1,12 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef } from "react";
 import { ApiReferenceReact } from "@scalar/api-reference-react";
 import type { AnyApiReferenceConfiguration } from "@scalar/api-reference-react";
 import "@scalar/api-reference-react/style.css";
 
 interface ScalarApiReferenceProps {
   spec: object;
+  instanceKey?: string;
 }
 
 type ScalarConfiguration = AnyApiReferenceConfiguration & {
@@ -297,7 +298,7 @@ const STRIPPED_LAYOUT_CSS = `
   position: relative !important;
   z-index: 0 !important;
   width: 100% !important;
-  max-width: 1100px !important;
+  max-width: 90% !important;
   margin: 0 auto !important;
   box-sizing: border-box !important;
 }
@@ -390,7 +391,7 @@ const GLOBAL_MODAL_CSS = String.raw`
     flex-shrink: 1 !important;
     flex-basis: 100% !important;
     width: 100% !important;
-    max-width: 1100px !important;
+    max-width: 100% !important;
     margin-left: auto !important;
     margin-right: auto !important;
 }
@@ -573,28 +574,38 @@ const ensureGlobalModalCss = () => {
   isEnsuringModalCss = false;
 };
 
-export function ScalarApiReference({ spec }: ScalarApiReferenceProps) {
+export function ScalarApiReference({
+  spec,
+  instanceKey,
+}: ScalarApiReferenceProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const readyAnnouncedRef = useRef(false);
   const scalarTheme: "default" = "default";
-  const configuration = {
-    spec: {
-      content: spec,
-    },
-    theme: scalarTheme,
-    layout: "modern",
-    darkMode: false,
-    hideDownloadButton: false,
-    hideModels: false,
-    showSidebar: false,
-    hideSearch: true,
-    showToolbar: "never",
-    customCss: STRIPPED_LAYOUT_CSS,
-    defaultHttpClient: {
-      targetKey: "js",
-      clientKey: "fetch",
-    },
-  } as ScalarConfiguration;
+  const fallbackInstanceKey = useId();
+  const scalarInstanceKey = instanceKey ?? fallbackInstanceKey;
+
+  const configuration = useMemo(
+    () =>
+      ({
+        spec: {
+          content: spec,
+        },
+        theme: scalarTheme,
+        layout: "modern",
+        darkMode: false,
+        hideDownloadButton: false,
+        hideModels: false,
+        showSidebar: false,
+        hideSearch: true,
+        showToolbar: "never",
+        customCss: STRIPPED_LAYOUT_CSS,
+        defaultHttpClient: {
+          targetKey: "js",
+          clientKey: "fetch",
+        },
+      }) as ScalarConfiguration,
+    [scalarTheme, spec]
+  );
 
   const moveModalsIntoContainer = () => {
     if (typeof document === "undefined") {
@@ -898,15 +909,19 @@ export function ScalarApiReference({ spec }: ScalarApiReferenceProps) {
       ref={containerRef}
       style={{
         width: "100%",
-        maxWidth: "1100px",
+        maxWidth: "100%",
         minHeight: "600px",
         margin: "2rem auto",
         position: "relative",
         overflow: "hidden",
       }}
       className="scalar-api-reference-container"
+      data-scalar-instance={scalarInstanceKey}
     >
-      <ApiReferenceReact configuration={configuration} />
+      <ApiReferenceReact
+        key={scalarInstanceKey}
+        configuration={configuration}
+      />
     </div>
   );
 }
