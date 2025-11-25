@@ -336,6 +336,15 @@ func main() {
         ],
         parameters: [
           {
+            name: "ApiKey",
+            in: "header",
+            required: true,
+            description: "کلید احراز هویت لازم برای دسترسی به فهرست پیام‌های دریافتی.",
+            schema: {
+              type: "string"
+            }
+          },
+          {
             name: "lineNumber",
             in: "query",
             required: true,

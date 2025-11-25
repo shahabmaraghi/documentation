@@ -148,6 +148,15 @@ check_sms_status(['23879310', '23879311'], 1)`
         ],
         parameters: [
           {
+            name: "ApiKey",
+            in: "header",
+            required: true,
+            description: "کلید احراز هویت برای مشاهده وضعیت پیام‌ها.",
+            schema: {
+              type: "string"
+            }
+          },
+          {
             name: "Ids",
             in: "query",
             required: true,

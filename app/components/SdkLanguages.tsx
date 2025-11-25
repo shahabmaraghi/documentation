@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 
 export function SdkLanguages() {
   const [activeTab, setActiveTab] = useState("nodejs");
@@ -11,6 +13,7 @@ export function SdkLanguages() {
       name: "Python",
       icon: "/python.svg",
       command: "pip install ghasedakpack",
+      language: "bash",
       link: "https://pypi.org/project/ghasedakpack/",
     },
     {
@@ -18,6 +21,7 @@ export function SdkLanguages() {
       name: "PHP",
       icon: "/php.svg",
       command: "composer require ghasedak/php",
+      language: "bash",
       link: "https://packagist.org/packages/ghasedak/php",
     },
     {
@@ -25,6 +29,7 @@ export function SdkLanguages() {
       name: "Java",
       icon: "/java.svg",
       command: "// Add to pom.xml\n<dependency>\n  <groupId>io.github.ghasedak</groupId>\n  <artifactId>ghasedak-java</artifactId>\n  <version>1.0.0</version>\n</dependency>",
+      language: "xml",
       link: "https://github.com/ghasedakapi/ghasedak-java",
     },
     {
@@ -32,6 +37,7 @@ export function SdkLanguages() {
       name: "Node.js",
       icon: "/nodejs.svg",
       command: "npm install --save ghasedak",
+      language: "bash",
       link: "https://www.npmjs.com/package/ghasedak",
     },
     {
@@ -39,6 +45,7 @@ export function SdkLanguages() {
       name: "Go",
       icon: "/go.svg",
       command: "go get github.com/ghasedakapi/ghasedak-go",
+      language: "bash",
       link: "https://github.com/ghasedakapi/ghasedak-go",
     },
     {
@@ -46,6 +53,7 @@ export function SdkLanguages() {
       name: ".NET",
       icon: "/netcore.png",
       command: "dotnet add package Ghasedak.Core",
+      language: "bash",
       link: "https://www.nuget.org/packages/Ghasedak.Core/",
     },
   ];
@@ -72,9 +80,23 @@ export function SdkLanguages() {
 
         <div className="sdk-tabs__content">
           <div className="sdk-command">
-            <pre className="sdk-command__code">
-              <code>{activeSDK.command}</code>
-            </pre>
+            <div className="sdk-command__code">
+              <SyntaxHighlighter
+                language={activeSDK.language}
+                style={vscDarkPlus}
+                customStyle={{
+                  margin: 0,
+                  padding: 0,
+                  background: "transparent",
+                  fontSize: "0.95rem",
+                  lineHeight: "1.6",
+                  fontFamily: '"Courier New", Courier, monospace',
+                }}
+                PreTag="div"
+              >
+                {activeSDK.command}
+              </SyntaxHighlighter>
+            </div>
             <a
               href={activeSDK.link}
               target="_blank"

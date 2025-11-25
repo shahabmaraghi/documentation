@@ -276,6 +276,48 @@ const STRIPPED_LAYOUT_CSS = `
   align-items: center !important;
   gap: 0.75rem !important;
   flex-wrap: wrap !important;
+  position: relative;
+}
+
+/* Show "Body" label via CSS ::before as fallback - positioned first */
+.scalar-api-reference .request-body-header::before {
+  content: "Body";
+  font-weight: 600;
+  color: var(--doc-text, #0f172a);
+  font-size: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-inline-end: 0.75rem;
+  order: 0;
+  flex-shrink: 0;
+}
+
+/* When JavaScript-added label exists, hide the ::before */
+.scalar-api-reference .request-body-header.has-body-label::before {
+  content: none;
+  display: none;
+}
+
+/* Ensure JavaScript-added label is visible and positioned first */
+.scalar-api-reference .request-body-header .gh-body-label {
+  font-weight: 600 !important;
+  color: var(--doc-text, #0f172a) !important;
+  font-size: 0.95rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.25rem !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  margin-inline-end: 0.75rem !important;
+  order: 0 !important;
+  flex-shrink: 0 !important;
+}
+
+/* Ensure second child (like content type selector) appears after Body */
+.scalar-api-reference .request-body-header > :nth-child(2):not(.gh-body-label) {
+  margin-inline-start: auto !important;
+  order: 1;
 }
 
 .scalar-api-reference .request-body-title {
@@ -285,14 +327,31 @@ const STRIPPED_LAYOUT_CSS = `
   margin: 0 !important;
 }
 
-.scalar-api-reference .request-body-header > :nth-child(2) {
-  margin-inline-start: auto !important;
+.scalar-api-reference .request-body-title::before {
+  content: "Body";
+  font-weight: 600;
+  color: var(--doc-text, #0f172a);
+  font-size: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
 }
 
-.doc-body.is-rtl .scalar-api-reference .request-body-header > :nth-child(2) {
-  margin-inline-start: 0 !important;
-  margin-inline-end: auto !important;
+.scalar-api-reference .request-body-title .gh-body-label {
+  font-weight: 600;
+  color: var(--doc-text, #0f172a);
+  font-size: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
 }
+
+.scalar-api-reference .request-body-title .gh-body-label::after {
+  content: ":";
+  font-weight: inherit;
+}
+
+
 
 .scalar-api-reference {
   position: relative !important;
@@ -759,6 +818,79 @@ export function ScalarApiReference({
     );
   }, []);
 
+  const ensureBodyLabels = useCallback(() => {
+    const container = containerRef.current;
+    if (!container) {
+      return;
+    }
+
+    // First, try to find request-body-header specifically
+    const requestBodyHeader = container.querySelector<HTMLElement>(".request-body-header, [class*='request-body-header']");
+    if (requestBodyHeader) {
+      // Check for existing label
+      let existingLabel = requestBodyHeader.querySelector<HTMLElement>(".gh-body-label");
+      if (existingLabel) {
+        // Ensure it's visible and positioned first
+        existingLabel.style.display = "inline-flex";
+        existingLabel.style.visibility = "visible";
+        existingLabel.style.opacity = "1";
+        existingLabel.style.order = "0";
+        requestBodyHeader.classList.add("has-body-label");
+      } else {
+        // Create new label and insert as first child
+        const bodyLabel = document.createElement("span");
+        bodyLabel.className = "gh-body-label";
+        bodyLabel.textContent = "Body";
+        bodyLabel.setAttribute("aria-hidden", "true");
+        bodyLabel.style.display = "inline-flex";
+        bodyLabel.style.visibility = "visible";
+        bodyLabel.style.opacity = "1";
+        bodyLabel.style.order = "0";
+        bodyLabel.style.marginInlineEnd = "0.75rem";
+        
+        // Insert at the very beginning
+        requestBodyHeader.insertBefore(bodyLabel, requestBodyHeader.firstChild);
+        requestBodyHeader.classList.add("has-body-label");
+      }
+    }
+
+    // Also check for request-body-title as fallback
+    const targets = [
+      ".request-body-title",
+      "[class*='request-body-title']",
+      "[data-section='requestBody'] [class*='title']",
+    ];
+
+    targets.forEach((selector) => {
+      container.querySelectorAll<HTMLElement>(selector).forEach((el) => {
+        // Skip if this is inside a header we already processed
+        if (el.closest(".request-body-header")) {
+          return;
+        }
+
+        const existingLabel = el.querySelector(".gh-body-label");
+        if (existingLabel) {
+          (existingLabel as HTMLElement).style.display = "inline-flex";
+          (existingLabel as HTMLElement).style.visibility = "visible";
+          (existingLabel as HTMLElement).style.opacity = "1";
+          el.classList.add("has-body-label");
+          return;
+        }
+
+        const bodyLabel = document.createElement("span");
+        bodyLabel.className = "gh-body-label";
+        bodyLabel.textContent = "Body";
+        bodyLabel.setAttribute("aria-hidden", "true");
+        bodyLabel.style.display = "inline-flex";
+        bodyLabel.style.visibility = "visible";
+        bodyLabel.style.opacity = "1";
+
+        el.prepend(bodyLabel);
+        el.classList.add("has-body-label");
+      });
+    });
+  }, []);
+
   const removeShowMoreButtons = useCallback(() => {
     if (typeof document === "undefined") {
       return;
@@ -800,6 +932,7 @@ export function ScalarApiReference({
     if (isScalarContentReady()) {
       window.setTimeout(() => {
         removeShowMoreButtons();
+        ensureBodyLabels();
         announceReady();
       }, 100);
       return;
@@ -810,6 +943,7 @@ export function ScalarApiReference({
         window.cancelAnimationFrame(frame);
         window.setTimeout(() => {
           removeShowMoreButtons();
+          ensureBodyLabels();
           announceReady();
         }, 100);
         frame = 0;
@@ -822,6 +956,7 @@ export function ScalarApiReference({
       if (isScalarContentReady()) {
         window.setTimeout(() => {
           removeShowMoreButtons();
+          ensureBodyLabels();
           announceReady();
         }, 100);
         observer.disconnect();
@@ -838,7 +973,7 @@ export function ScalarApiReference({
         window.cancelAnimationFrame(frame);
       }
     };
-  }, [announceReady, isScalarContentReady, removeShowMoreButtons]);
+  }, [announceReady, ensureBodyLabels, isScalarContentReady, removeShowMoreButtons]);
 
   useEffect(() => {
     ensureGlobalModalCss();
@@ -850,6 +985,7 @@ export function ScalarApiReference({
     // Continuously remove "Show More" buttons
     const showMoreInterval = window.setInterval(() => {
       removeShowMoreButtons();
+      ensureBodyLabels();
     }, 500);
 
     return () => {
@@ -858,7 +994,7 @@ export function ScalarApiReference({
       stopWatchingReady?.();
       window.clearInterval(showMoreInterval);
     };
-  }, [watchForReadyState, removeShowMoreButtons]);
+  }, [ensureBodyLabels, watchForReadyState, removeShowMoreButtons]);
 
   useEffect(() => {
     ensureGlobalModalCss();

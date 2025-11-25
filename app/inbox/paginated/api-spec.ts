@@ -491,6 +491,15 @@ func main() {
         ],
         parameters: [
           {
+            name: "ApiKey",
+            in: "header",
+            required: true,
+            description: "کلید احراز هویت لازم برای دریافت پیام‌های صفحه‌بندی شده.",
+            schema: {
+              type: "string"
+            }
+          },
+          {
             name: "lineNumber",
             in: "query",
             required: true,

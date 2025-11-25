@@ -128,6 +128,15 @@ get_template_parameters('Ghasedak')`
         ],
         parameters: [
           {
+            name: "ApiKey",
+            in: "header",
+            required: true,
+            description: "کلید احراز هویت لازم برای استفاده از متد.",
+            schema: {
+              type: "string",
+            },
+          },
+          {
             name: "TemplateName",
             in: "query",
             required: true,

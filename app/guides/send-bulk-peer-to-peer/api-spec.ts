@@ -23,11 +23,34 @@ export const sendGroupSmsPeerToPeerApiSpec = {
             ApiKeyAuth: []
           }
         ],
+        parameters: [
+          {
+            name: "ApiKey",
+            in: "header",
+            required: true,
+            description: "کلید احراز هویت دریافت‌شده از داشبورد قاصدک.",
+            schema: {
+              type: "string"
+            }
+          },
+          {
+            name: "Content-Type",
+            in: "header",
+            required: true,
+            description: "برای ارسال بدنه‌ی JSON مقدار باید application/json باشد.",
+            schema: {
+              type: "string",
+              enum: ["application/json"]
+            }
+          }
+        ],
         requestBody: {
           required: true,
+          in: "body",
           content: {
             "application/json": {
               schema: {
+                title: "Body",
                 type: "object",
                 required: ["items"],
                 properties: {

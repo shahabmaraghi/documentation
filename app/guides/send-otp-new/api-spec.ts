@@ -35,6 +35,27 @@ export const sendOtpSmsNewApiSpec = {
             ApiKey: []
           }
         ],
+        parameters: [
+          {
+            name: "ApiKey",
+            in: "header",
+            required: true,
+            description: "کلید احراز هویت لازم برای ارسال درخواست.",
+            schema: {
+              type: "string"
+            }
+          },
+          {
+            name: "Content-Type",
+            in: "header",
+            required: true,
+            description: "برای ارسال بدنه‌ی JSON مقدار باید application/json باشد.",
+            schema: {
+              type: "string",
+              enum: ["application/json"]
+            }
+          }
+        ],
         "x-code-samples": [
           {
             lang: "curl",
@@ -435,6 +456,7 @@ func main() {
           content: {
             "application/json": {
               schema: {
+                title: "Body",
                 type: "object",
                 required: ["receptors", "templateName", "inputs"],
                 properties: {
