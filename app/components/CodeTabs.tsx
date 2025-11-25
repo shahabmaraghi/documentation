@@ -1,6 +1,13 @@
 "use client";
 
-import { Children, ReactNode, useState } from "react";
+import {
+  Children,
+  ReactElement,
+  ReactNode,
+  isValidElement,
+  useMemo,
+  useState,
+} from "react";
 
 interface CodeTabsProps {
   children: ReactNode;
@@ -8,20 +15,171 @@ interface CodeTabsProps {
   defaultTab?: number;
 }
 
+type CodeDetails = {
+  code: string;
+  language: string;
+};
+
+const isPreElement = (
+  node: ReactNode
+): node is ReactElement<{ children?: ReactNode }> =>
+  isValidElement<{ children?: ReactNode }>(node) && node.type === "pre";
+
+const normalizeCodeLanguage = (className?: string) => {
+  if (!className) {
+    return "text";
+  }
+
+  const match = className.match(/language-([\w+#.-]+)/i);
+  return match?.[1] ?? "text";
+};
+
+const getStringFromChildren = (node: ReactNode): string => {
+  if (typeof node === "string") {
+    return node;
+  }
+
+  if (Array.isArray(node)) {
+    return node.map(getStringFromChildren).join("");
+  }
+
+  if (isValidElement<{ children?: ReactNode }>(node)) {
+    return getStringFromChildren(node.props.children);
+  }
+
+  return "";
+};
+
+const extractCodeDetails = (panel: ReactNode): CodeDetails | null => {
+  if (!isPreElement(panel)) {
+    return null;
+  }
+
+  const codeChild = panel.props.children;
+
+  if (
+    !isValidElement<{ children?: ReactNode; className?: string }>(codeChild)
+  ) {
+    return null;
+  }
+
+  const rawCode = getStringFromChildren(codeChild.props.children).trimEnd();
+  const language = normalizeCodeLanguage(codeChild.props.className);
+
+  return rawCode ? { code: rawCode, language } : null;
+};
+
+const CopyIcon = () => (
+  <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+    <path
+      d="M8 3h9a2 2 0 0 1 2 2v13"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      fill="none"
+    />
+    <path
+      d="M6 7h9a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Z"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      fill="none"
+    />
+  </svg>
+);
+
+const CheckIcon = () => (
+  <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+    <path
+      d="M5 13l4 4L19 7"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      fill="none"
+    />
+  </svg>
+);
+
+const EnhancedCodePanel = ({ code, language }: CodeDetails): ReactElement => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    if (copied) return;
+
+    try {
+      if (typeof navigator !== "undefined" && navigator.clipboard) {
+        await navigator.clipboard.writeText(code);
+      } else {
+        const textarea = document.createElement("textarea");
+        textarea.value = code;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+      }
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      console.error("Failed to copy code snippet", error);
+    }
+  };
+
+  const normalizedLanguage = language.toLowerCase();
+
+  return (
+    <div className="code-tabs__panel-shell">
+      <div className="code-tabs__copy-wrapper">
+        <button
+          type="button"
+          className={`code-tabs__copy-btn ${copied ? "is-copied" : ""}`}
+          onClick={handleCopy}
+          aria-label="کپی کردن کد"
+          title={copied ? "کپی شد" : "کپی کردن کد"}
+        >
+          <span className="code-tabs__copy-icon" aria-hidden="true">
+            {copied ? <CheckIcon /> : <CopyIcon />}
+          </span>
+        </button>
+      </div>
+      <div className="code-tabs__code-surface">
+        <pre>
+          <code
+            className={`language-${normalizedLanguage}`}
+            dir="ltr"
+            tabIndex={0}
+          >
+            {code}
+          </code>
+        </pre>
+      </div>
+    </div>
+  );
+};
+
 export function CodeTabs({ children, labels, defaultTab = 0 }: CodeTabsProps) {
   const totalTabs = labels.length;
   const safeDefaultTab =
     totalTabs > 0 ? Math.min(Math.max(defaultTab, 0), totalTabs - 1) : 0;
   const [activeTab, setActiveTab] = useState(safeDefaultTab);
 
-  const normalizedChildren = Children.toArray(children).filter((child) => {
-    if (typeof child === "string") {
-      return child.trim().length > 0;
-    }
-    return true;
-  });
+  const normalizedChildren = useMemo(
+    () =>
+      Children.toArray(children).filter((child) => {
+        if (typeof child === "string") {
+          return child.trim().length > 0;
+        }
+        return true;
+      }),
+    [children]
+  );
 
-  const panels = labels.map((_, index) => normalizedChildren[index] ?? null);
+  const panels = useMemo(
+    () => labels.map((_, index) => normalizedChildren[index] ?? null),
+    [labels, normalizedChildren]
+  );
 
   const normalizeLabel = (label: string) =>
     label
@@ -118,7 +276,18 @@ export function CodeTabs({ children, labels, defaultTab = 0 }: CodeTabsProps) {
               aria-labelledby={tabId}
               hidden={activeTab !== index}
             >
-              {panel}
+              {(() => {
+                const details = extractCodeDetails(panel);
+                if (details) {
+                  return (
+                    <EnhancedCodePanel
+                      code={details.code}
+                      language={details.language}
+                    />
+                  );
+                }
+                return panel;
+              })()}
             </div>
           );
         })}

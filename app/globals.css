@@ -1395,9 +1395,11 @@ body:last-child .scalar-modal-layout {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: nowrap;
   padding: 1rem 1.5rem;
   background: linear-gradient(180deg, #4a5161 0%, #3d4351 100%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  gap: 0.85rem;
   min-width: 0;
 }
 
@@ -2454,8 +2456,113 @@ body:last-child .scalar-modal-layout {
   border-radius: 0;
   border: none;
   background: var(--doc-surface-alt);
-  font-family: "IRANSans", "Inter", "Segoe UI", system-ui, -apple-system,
-    BlinkMacSystemFont, sans-serif;
+  padding: 1.75rem 1.5rem 1.5rem;
+  font-family: var(
+    --doc-font-mono,
+    "IRANSans",
+    "Inter",
+    "Segoe UI",
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    monospace
+  );
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--doc-text);
+  direction: ltr;
+  text-align: left;
+  overflow-x: auto;
+}
+
+.code-tabs__panel-shell {
+  border-radius: 0 0 var(--doc-radius-md) var(--doc-radius-md);
+  background: var(--doc-surface);
+  overflow: hidden;
+  border: 1px solid var(--doc-border);
+  border-top: none;
+  position: relative;
+}
+
+.code-tabs__copy-wrapper {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  display: inline-flex;
+}
+
+.code-tabs__copy-btn {
+  border: none;
+  background: rgba(15, 23, 42, 0.08);
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+  color: #0f172a;
+  padding: 0;
+}
+
+.code-tabs__copy-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+}
+
+.code-tabs__copy-btn svg {
+  width: 18px;
+  height: 18px;
+  transition: transform 0.2s ease;
+}
+
+.code-tabs__copy-btn:hover,
+.code-tabs__copy-btn:focus-visible {
+  background: rgba(15, 23, 42, 0.15);
+  transform: translateY(-1px);
+}
+
+.code-tabs__copy-btn.is-copied {
+  background: rgba(34, 197, 94, 0.2);
+  color: #15803d;
+}
+
+.code-tabs__copy-btn.is-copied svg {
+  transform: scale(1.05);
+}
+
+.code-tabs__code-surface {
+  padding: 0;
+  background: transparent;
+  overflow-x: auto;
+}
+
+.code-tabs__code-surface code {
+  background: none;
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}
+
+@media (max-width: 640px) {
+  .code-tabs__copy-wrapper {
+    top: 0.5rem;
+    right: 0.5rem;
+  }
+
+  .code-tabs__copy-btn {
+    width: 28px;
+    height: 28px;
+  }
+
+  .code-tabs__copy-btn svg {
+    width: 14px;
+    height: 14px;
+  }
 }
 
 /* Responsive styles for CodeTabs */
@@ -3549,11 +3656,17 @@ body:last-child .scalar-modal-layout {
 }
 
 @media (max-width: 420px) {
-  .base-url-card__header,
-  .operation-box__header {
+  .base-url-card__header {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.45rem;
+  }
+
+  .operation-box__header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.35rem;
   }
 
   .base-url-card__icons,
@@ -3935,6 +4048,10 @@ body:last-child .scalar-modal-layout {
   border-top: 1px solid #3e3e42;
   display: flex;
   justify-content: flex-end;
+}
+
+.code-tabs__code-language{
+  display:none !important;
 }
 
 .api-interactive__test-button {

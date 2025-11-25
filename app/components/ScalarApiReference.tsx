@@ -383,6 +383,79 @@ const STRIPPED_LAYOUT_CSS = `
 }
 `;
 
+const PARAMETER_ANCHOR_SEGMENT = ".parameters.";
+let hasPatchedParameterClipboard = false;
+
+const extractParameterNameFromClipboardPayload = (value: unknown) => {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const anchorCandidate = value.includes("#")
+    ? value.slice(value.indexOf("#") + 1)
+    : value;
+  const segmentIndex = anchorCandidate.lastIndexOf(PARAMETER_ANCHOR_SEGMENT);
+
+  if (segmentIndex === -1) {
+    return null;
+  }
+
+  const tail = anchorCandidate.slice(
+    segmentIndex + PARAMETER_ANCHOR_SEGMENT.length
+  );
+
+  if (!tail) {
+    return null;
+  }
+
+  const sanitizedTail = tail.split(/[?#]/)[0];
+  const parts = sanitizedTail.split(".");
+  const candidate = parts.pop();
+
+  if (!candidate) {
+    return null;
+  }
+
+  try {
+    const decoded = decodeURIComponent(candidate).trim();
+    return decoded || null;
+  } catch {
+    const fallback = candidate.trim();
+    return fallback || null;
+  }
+};
+
+const patchClipboardWriterForParameterCopy = () => {
+  if (
+    hasPatchedParameterClipboard ||
+    typeof navigator === "undefined" ||
+    typeof window === "undefined"
+  ) {
+    return;
+  }
+
+  const { clipboard } = navigator;
+  if (!clipboard || typeof clipboard.writeText !== "function") {
+    return;
+  }
+
+  const originalWriteText = clipboard.writeText.bind(clipboard);
+  const patchedWriter: typeof clipboard.writeText = (text: string) => {
+    const parameterName = extractParameterNameFromClipboardPayload(text);
+    if (parameterName) {
+      return originalWriteText(parameterName);
+    }
+    return originalWriteText(text);
+  };
+
+  try {
+    clipboard.writeText = patchedWriter;
+    hasPatchedParameterClipboard = true;
+  } catch {
+    // Clipboard might be read-only in certain contexts; ignore if patch fails.
+  }
+};
+
 const MODAL_STYLE_ID = "scalar-modal-global-overrides";
 let isEnsuringModalCss = false;
 let modalEnforceHandle: number | null = null;
@@ -1150,6 +1223,10 @@ export function ScalarApiReference({
     });
 
     return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    patchClipboardWriterForParameterCopy();
   }, []);
 
   return (

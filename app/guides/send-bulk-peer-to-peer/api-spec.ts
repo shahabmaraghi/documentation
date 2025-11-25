@@ -40,7 +40,7 @@ export const sendGroupSmsPeerToPeerApiSpec = {
             description: "برای ارسال بدنه‌ی JSON مقدار باید application/json باشد.",
             schema: {
               type: "string",
-              enum: ["application/json"]
+              example: "application/json"
             }
           }
         ],

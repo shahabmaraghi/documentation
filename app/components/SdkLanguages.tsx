@@ -1,8 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 
 export function SdkLanguages() {
   const [activeTab, setActiveTab] = useState("nodejs");
@@ -81,21 +79,9 @@ export function SdkLanguages() {
         <div className="sdk-tabs__content">
           <div className="sdk-command">
             <div className="sdk-command__code">
-              <SyntaxHighlighter
-                language={activeSDK.language}
-                style={vscDarkPlus}
-                customStyle={{
-                  margin: 0,
-                  padding: 0,
-                  background: "transparent",
-                  fontSize: "0.95rem",
-                  lineHeight: "1.6",
-                  fontFamily: '"Courier New", Courier, monospace',
-                }}
-                PreTag="div"
-              >
-                {activeSDK.command}
-              </SyntaxHighlighter>
+              <pre>
+                <code>{activeSDK.command}</code>
+              </pre>
             </div>
             <a
               href={activeSDK.link}
