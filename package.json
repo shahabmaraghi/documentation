@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@scalar/api-reference-react": "^0.8.5",
+    "@tanstack/react-table": "^8.21.3",
     "next": "16.0.1",
     "nextra": "^4.6.0",
     "nextra-theme-docs": "^4.6.0",

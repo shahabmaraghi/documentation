@@ -1,7 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import {
+  useReactTable,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getSortedRowModel,
+  flexRender,
+  ColumnDef,
+  createColumnHelper,
+  CellContext,
+  HeaderContext,
+} from "@tanstack/react-table";
 
 interface ErrorCode {
   code?: number;
@@ -9,6 +20,50 @@ interface ErrorCode {
   description?: string;
   [key: string]: any;
 }
+
+// Mock data to use when API fails
+const MOCK_ERROR_DATA: ErrorCode[] = [
+  {
+    code: 1,
+    message: "خطای احراز هویت",
+    description: "API Key نامعتبر است",
+  },
+  {
+    code: 2,
+    message: "خطای اعتبارسنجی",
+    description: "پارامترهای ارسالی نامعتبر هستند",
+  },
+  {
+    code: 3,
+    message: "خطای محدودیت",
+    description: "تعداد درخواست‌ها از حد مجاز تجاوز کرده است",
+  },
+  {
+    code: 4,
+    message: "خطای سرور",
+    description: "خطای داخلی سرور رخ داده است",
+  },
+  {
+    code: 5,
+    message: "خطای شبکه",
+    description: "اتصال به سرور برقرار نشد",
+  },
+  {
+    code: 6,
+    message: "خطای فرمت",
+    description: "فرمت داده‌های ارسالی صحیح نیست",
+  },
+  {
+    code: 7,
+    message: "خطای مجوز",
+    description: "شما مجوز دسترسی به این منبع را ندارید",
+  },
+  {
+    code: 8,
+    message: "خطای یافت نشد",
+    description: "منبع درخواستی یافت نشد",
+  },
+];
 
 const SkeletonTable = ({
   columns = 4,
@@ -76,12 +131,25 @@ export default function ErrorTablePage() {
   const [data, setData] = useState<ErrorCode[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+  const [usingMockData, setUsingMockData] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         setError(null);
+        setUsingMockData(false);
         const response = await fetch("/api/error-codes");
 
         if (!response.ok) {
@@ -96,17 +164,34 @@ export default function ErrorTablePage() {
         }
 
         // Handle different possible response structures
+        let fetchedData: ErrorCode[] = [];
         if (Array.isArray(result)) {
-          setData(result);
+          fetchedData = result;
         } else if (result.data && Array.isArray(result.data)) {
-          setData(result.data);
+          fetchedData = result.data;
         } else if (result.result && Array.isArray(result.result)) {
-          setData(result.result);
+          fetchedData = result.result;
         } else {
-          setData([result]);
+          fetchedData = [result];
+        }
+
+        // If no data or empty array, use mock data
+        if (fetchedData.length === 0) {
+          setData(MOCK_ERROR_DATA);
+          setUsingMockData(true);
+          setError("داده‌ای از API دریافت نشد. در حال نمایش داده‌های نمونه");
+        } else {
+          setData(fetchedData);
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : "خطا در دریافت داده‌ها");
+        // On error, use mock data instead
+        setData(MOCK_ERROR_DATA);
+        setUsingMockData(true);
+        setError(
+          err instanceof Error
+            ? `خطا در دریافت داده‌ها: ${err.message}. در حال نمایش داده‌های نمونه`
+            : "خطا در دریافت داده‌ها. در حال نمایش داده‌های نمونه"
+        );
         console.error("Error fetching data:", err);
       } finally {
         setLoading(false);
@@ -143,17 +228,48 @@ export default function ErrorTablePage() {
 
   const headers = getTableHeaders();
 
+  // Create columns dynamically
+  const columnHelper = createColumnHelper<ErrorCode>();
+  
+  const columns = useMemo<ColumnDef<ErrorCode>[]>(() => {
+    return headers.map((header) =>
+      columnHelper.accessor((row: ErrorCode) => row[header], {
+        id: header,
+        header: () => (
+          <span style={{ fontWeight: "600" }}>{header}</span>
+        ),
+        cell: (info: CellContext<ErrorCode, unknown>) => {
+          const value = info.getValue();
+          return value !== null && value !== undefined ? String(value) : "-";
+        },
+      })
+    );
+  }, [headers, columnHelper]);
+
+  const table = useReactTable({
+    data,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+  });
+
   return (
     <div
       style={{
-        padding: "2rem",
+        padding: "clamp(1rem, 2vw, 2rem)",
         maxWidth: "1400px",
         margin: "0 auto",
         backgroundColor: "rgb(245, 246, 251)",
+        minHeight: "100vh",
       }}
     >
       <h1
-        style={{ marginBottom: "1.5rem", fontSize: "2rem", fontWeight: "700" }}
+        style={{
+          marginBottom: "1.5rem",
+          fontSize: "clamp(1.5rem, 4vw, 2rem)",
+          fontWeight: "700",
+        }}
       >
         جدول کدهای خطا
       </h1>
@@ -166,109 +282,190 @@ export default function ErrorTablePage() {
         <div
           style={{
             padding: "1rem",
-            backgroundColor: "#fee2e2",
-            border: "1px solid #fca5a5",
+            backgroundColor: usingMockData ? "#fef3c7" : "#fee2e2",
+            border: `1px solid ${usingMockData ? "#fcd34d" : "#fca5a5"}`,
             borderRadius: "8px",
             marginBottom: "1rem",
-            color: "#991b1b",
+            color: usingMockData ? "#92400e" : "#991b1b",
           }}
         >
-          <strong>خطا:</strong> {error}
+          <strong>{usingMockData ? "توجه:" : "خطا:"}</strong> {error}
         </div>
       )}
 
-      {!loading && !error && data.length === 0 && (
+      {!loading && data.length === 0 && (
         <div
-          style={{ textAlign: "center", padding: "3rem", fontSize: "1.1rem" }}
+          style={{
+            textAlign: "center",
+            padding: "3rem",
+            fontSize: "1.1rem",
+          }}
         >
           داده‌ای یافت نشد.
         </div>
       )}
 
-      {!loading && !error && data.length > 0 && (
-        // <div
-        //   style={{
-        //     overflowX: "auto",
-        //     border: "1px solid var(--doc-border)",
-        //     borderRadius: "var(--doc-radius-md)",
-        //     backgroundColor: "var(--doc-surface)",
-        //   }}
-        // >
-        <table
-          style={{
-            width: "100%",
-            borderCollapse: "collapse",
-            minWidth: "600px",
-          }}
-        >
-          <thead>
-            <tr
+      {!loading && data.length > 0 && (
+        <>
+          {/* Mobile Card View */}
+          {isMobile ? (
+            <div
               style={{
-                backgroundColor: "var(--doc-surface-alt)",
-                borderBottom: "2px solid var(--doc-border)",
+                display: "flex",
+                flexDirection: "column",
+                gap: "1rem",
               }}
             >
-              {headers.map((header) => (
-                <th
-                  key={header}
+              {table.getRowModel().rows.map((row: any) => (
+                <div
+                  key={row.id}
                   style={{
+                    border: "1px solid var(--doc-border)",
+                    borderRadius: "var(--doc-radius-md)",
+                    backgroundColor: "var(--doc-surface)",
                     padding: "1rem",
-                    textAlign: "right",
-                    fontWeight: "600",
-                    borderLeft: "1px solid var(--doc-border)",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "0.75rem",
                   }}
                 >
-                  {header}
-                </th>
+                  {row.getVisibleCells().map((cell: any) => (
+                    <div
+                      key={cell.id}
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "0.25rem",
+                        paddingBottom: "0.75rem",
+                        borderBottom: "1px solid var(--doc-border)",
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontWeight: "600",
+                          fontSize: "0.875rem",
+                          color: "var(--doc-text-muted)",
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        {cell.column.id}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: "1rem",
+                          color: "var(--doc-text)",
+                          wordBreak: "break-word",
+                        }}
+                      >
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               ))}
-            </tr>
-          </thead>
-          <tbody>
-            {data.map((item, index) => (
-              <tr
-                key={index}
+            </div>
+          ) : (
+            /* Desktop/Tablet Table View */
+            <div
+              style={{
+                overflowX: "auto",
+                WebkitOverflowScrolling: "touch",
+                border: "1px solid var(--doc-border)",
+                borderRadius: "var(--doc-radius-md)",
+                backgroundColor: "var(--doc-surface)",
+              }}
+            >
+              <table
                 style={{
-                  borderBottom: "1px solid var(--doc-border)",
-                  transition: "background-color 0.2s",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor =
-                    "var(--doc-surface-alt)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "transparent";
+                  width: "100%",
+                  borderCollapse: "collapse",
+                  minWidth: "600px",
                 }}
               >
-                {headers.map((header) => (
-                  <td
-                    key={header}
-                    style={{
-                      padding: "1rem",
-                      textAlign: "right",
-                      borderLeft: "1px solid var(--doc-border)",
-                    }}
-                  >
-                    {item[header] !== null && item[header] !== undefined
-                      ? String(item[header])
-                      : "-"}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        // </div>
+                <thead>
+                  {table.getHeaderGroups().map((headerGroup: any) => (
+                    <tr
+                      key={headerGroup.id}
+                      style={{
+                        backgroundColor: "var(--doc-surface-alt)",
+                        borderBottom: "2px solid var(--doc-border)",
+                      }}
+                    >
+                      {headerGroup.headers.map((header: any) => (
+                        <th
+                          key={header.id}
+                          style={{
+                            padding: "clamp(0.75rem, 1.5vw, 1rem)",
+                            textAlign: "right",
+                            fontWeight: "600",
+                            borderLeft: "1px solid var(--doc-border)",
+                            fontSize: "clamp(0.875rem, 1.5vw, 1rem)",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
+                        </th>
+                      ))}
+                    </tr>
+                  ))}
+                </thead>
+                <tbody>
+                  {table.getRowModel().rows.map((row: any) => (
+                    <tr
+                      key={row.id}
+                      style={{
+                        borderBottom: "1px solid var(--doc-border)",
+                        transition: "background-color 0.2s",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor =
+                          "var(--doc-surface-alt)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "transparent";
+                      }}
+                    >
+                      {row.getVisibleCells().map((cell: any) => (
+                        <td
+                          key={cell.id}
+                          style={{
+                            padding: "clamp(0.75rem, 1.5vw, 1rem)",
+                            textAlign: "right",
+                            borderLeft: "1px solid var(--doc-border)",
+                            fontSize: "clamp(0.875rem, 1.5vw, 1rem)",
+                            wordBreak: "break-word",
+                          }}
+                        >
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </>
       )}
 
-      {!loading && !error && data.length > 0 && (
+      {!loading && data.length > 0 && (
         <div
           style={{
             marginTop: "1rem",
             color: "var(--doc-text-muted)",
-            fontSize: "0.9rem",
+            fontSize: "clamp(0.875rem, 1.5vw, 0.9rem)",
           }}
         >
           تعداد ردیف‌ها: {data.length}
+          {usingMockData && " (داده‌های نمونه)"}
         </div>
       )}
 
