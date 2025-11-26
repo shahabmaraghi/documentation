@@ -165,11 +165,11 @@ html {
 /* 1. When modal is open, completely hide the header. 
    This makes it impossible for it to cover the modal. */
 body.has-scalar-modal-open .doc-header {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
-  z-index: -1 !important;
+  z-index: 0 !important;
+}
+
+.doc-header--hidden-by-modal {
+  z-index: 0 !important;
 }
 
 /* 2. Force Modal to be fixed and on top of EVERYTHING */
@@ -273,6 +273,7 @@ body:last-child .scalar-modal-layout {
 
 .doc-body.is-light .doc-header {
   background: rgba(255, 255, 255, 0.92);
+  z-index: 0 !important;
 }
 
 .doc-header__brand {
