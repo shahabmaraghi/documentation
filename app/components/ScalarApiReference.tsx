@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useId, useMemo, useRef } from "react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { ApiReferenceReact } from "@scalar/api-reference-react";
 import type { AnyApiReferenceConfiguration } from "@scalar/api-reference-react";
 import "@scalar/api-reference-react/style.css";
@@ -783,6 +790,7 @@ export function ScalarApiReference({
 }: ScalarApiReferenceProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const readyAnnouncedRef = useRef(false);
+  const [isReady, setIsReady] = useState(false);
   const scalarTheme: "default" = "default";
   const fallbackInstanceKey = useId();
   const scalarInstanceKey = instanceKey ?? fallbackInstanceKey;
@@ -864,6 +872,7 @@ export function ScalarApiReference({
       return;
     }
     readyAnnouncedRef.current = true;
+    setIsReady(true);
     window.dispatchEvent(
       new CustomEvent("ghasedak:scalar-ready", {
         detail: {
@@ -879,6 +888,11 @@ export function ScalarApiReference({
     ".scalar-api-reference [class*='endpoint']",
     ".scalar-api-reference pre code",
   ]);
+
+  useEffect(() => {
+    readyAnnouncedRef.current = false;
+    setIsReady(false);
+  }, [scalarInstanceKey, spec]);
 
   const isScalarContentReady = useCallback(() => {
     const container = containerRef.current;
@@ -1231,22 +1245,41 @@ export function ScalarApiReference({
 
   return (
     <div
-      ref={containerRef}
-      style={{
-        width: "100%",
-        maxWidth: "100%",
-        minHeight: "600px",
-        margin: "2rem auto",
-        position: "relative",
-        overflow: "hidden",
-      }}
-      className="scalar-api-reference-container"
-      data-scalar-instance={scalarInstanceKey}
+      className="scalar-api-reference-wrapper"
+      data-scalar-ready={isReady ? "true" : "false"}
+      aria-busy={!isReady}
     >
-      <ApiReferenceReact
-        key={scalarInstanceKey}
-        configuration={configuration}
-      />
+      {!isReady ? (
+        <div
+          className="scalar-api-reference-loader"
+          role="status"
+          aria-live="polite"
+        >
+          <div
+            className="scalar-api-reference-loader__spinner"
+            aria-hidden="true"
+          />
+          <span>در حال بارگذاری مستندات API…</span>
+        </div>
+      ) : null}
+      <div
+        ref={containerRef}
+        style={{
+          width: "100%",
+          maxWidth: "100%",
+          minHeight: "600px",
+          margin: "2rem auto",
+          position: "relative",
+          overflow: "hidden",
+        }}
+        className="scalar-api-reference-container"
+        data-scalar-instance={scalarInstanceKey}
+      >
+        <ApiReferenceReact
+          key={scalarInstanceKey}
+          configuration={configuration}
+        />
+      </div>
     </div>
   );
 }

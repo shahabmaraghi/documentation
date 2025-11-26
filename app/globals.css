@@ -1325,6 +1325,57 @@ body:last-child .scalar-modal-layout {
   display: none !important;
 }
 
+/* Scalar API loading overlay */
+.scalar-api-reference-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.scalar-api-reference-wrapper[data-scalar-ready="false"] {
+  min-height: 640px;
+}
+
+.scalar-api-reference-loader {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  background: var(--doc-surface, #fff);
+  color: var(--doc-text, #0f172a);
+  z-index: 5;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+  font-weight: 500;
+  text-align: center;
+  padding: 1.5rem;
+}
+
+.scalar-api-reference-wrapper[data-scalar-ready="true"] .scalar-api-reference-loader {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.scalar-api-reference-loader__spinner {
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  border: 3px solid rgba(33, 175, 102, 0.12);
+  border-top-color: #10b981;
+  animation: scalar-loader-spin 0.9s linear infinite;
+}
+
+@keyframes scalar-loader-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* Hide unified page content on home page - show only home page content */
 .doc-article__page[data-page-href="/"] ~ .unified-page-content,
 .doc-article__page[data-page-href="/"] + .unified-page-content,

@@ -78,6 +78,8 @@ export function UnifiedPageContent({ activeSectionId }: UnifiedPageContentProps)
       );
     scalarWrappers.forEach((wrapper) => {
       wrapper.style.display = "";
+      wrapper.classList.remove("scalar-api-wrapper--active");
+      wrapper.dataset.active = "false";
     });
   }, []);
 
@@ -94,11 +96,10 @@ export function UnifiedPageContent({ activeSectionId }: UnifiedPageContentProps)
         );
       scalarWrappers.forEach((wrapper) => {
         const scalarSectionId = wrapper.getAttribute("data-scalar-section");
-        if (scalarSectionId === activeSectionId) {
-          wrapper.style.display = "";
-        } else {
-          wrapper.style.display = "none";
-        }
+        const isActive = scalarSectionId === activeSectionId;
+        wrapper.style.display = "";
+        wrapper.dataset.active = isActive ? "true" : "false";
+        wrapper.classList.toggle("scalar-api-wrapper--active", Boolean(isActive));
       });
     },
     []
@@ -107,19 +108,9 @@ export function UnifiedPageContent({ activeSectionId }: UnifiedPageContentProps)
   // Initial Scalar visibility setup - hide all, then show only the active one
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      const unifiedContent = document.querySelector(".unified-page-content");
-      if (!unifiedContent) return;
+      resetScalarVisibility();
 
-      const scalarWrappers = unifiedContent.querySelectorAll<HTMLElement>(
-        ".scalar-api-wrapper[data-scalar-section]"
-      );
-      
-      // Hide all scalar boxes first
-      scalarWrappers.forEach((wrapper) => {
-        wrapper.style.display = "none";
-      });
-      
-      // Then show only the active one if we have an activeSectionId
+      // Highlight the active one if we have an activeSectionId
       if (activeSectionId) {
         updateScalarVisibility(activeSectionId);
       } else {
@@ -139,7 +130,7 @@ export function UnifiedPageContent({ activeSectionId }: UnifiedPageContentProps)
     }, 100);
 
     return () => clearTimeout(timeoutId);
-  }, [pathname, activeSectionId, updateScalarVisibility]);
+  }, [pathname, activeSectionId, updateScalarVisibility, resetScalarVisibility]);
 
   // Scroll to section when activeSectionId changes and update Scalar visibility
   useEffect(() => {
@@ -365,14 +356,9 @@ export function UnifiedPageContent({ activeSectionId }: UnifiedPageContentProps)
         }
       }
       
-      // Update Scalar box visibility based on active section - hide all first, then show only the active one
-      const scalarWrappers = unifiedContent.querySelectorAll<HTMLElement>(
-        ".scalar-api-wrapper[data-scalar-section]"
-      );
-      scalarWrappers.forEach((wrapper) => {
-        wrapper.style.display = "none";
-      });
-      
+      // Ensure all scalar boxes stay visible
+      resetScalarVisibility();
+
       if (targetSectionId) {
         updateScalarVisibility(targetSectionId);
       }
