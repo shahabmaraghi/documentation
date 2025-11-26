@@ -284,6 +284,32 @@ body:last-child .scalar-modal-layout {
   text-align: start;
 }
 
+.doc-header__support-box {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.7rem;
+  margin-inline-start: 1rem;
+  border-radius: var(--doc-radius-sm);
+  border: 1px solid var(--doc-border);
+  background: var(--doc-surface-alt);
+  font-size: 0.85rem;
+  color: var(--doc-text-muted);
+  white-space: nowrap;
+}
+
+.doc-header__support-label {
+  font-weight: 500;
+}
+
+.doc-header__support-value {
+  direction: ltr;
+  font-family: "IRANSans", "Inter", "Segoe UI", system-ui, -apple-system,
+    BlinkMacSystemFont, sans-serif;
+  font-weight: 600;
+  color: var(--doc-text);
+}
+
 .doc-header__menu-toggle {
   display: none;
   align-items: center;
@@ -2184,6 +2210,8 @@ body:last-child .scalar-modal-layout {
 .scalar-api-reference [class*="wrapper"] {
   padding-left: 0px !important;
   padding-right: 0px !important;
+  font-family: "IRANSans", "Inter", "Segoe UI", system-ui, -apple-system,
+    BlinkMacSystemFont, sans-serif !important;
 }
 
 .section-container > section:first-of-type {

@@ -711,6 +711,10 @@ export default function RootLayoutClient({
             <span className="doc-logo__text">مستندات پیام کوتاه قاصدک</span>
           </Link>
         </div>
+        <div className="doc-header__support-box">
+          <span className="doc-header__support-label">شماره پشتیبانی:</span>
+          <span className="doc-header__support-value">021-91091024</span>
+        </div>
         <nav className="doc-header__nav" aria-label="Primary">
           <div className="doc-header__controls">
             {/* Theme toggle removed per design request */}
