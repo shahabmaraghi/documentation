@@ -464,85 +464,8 @@ const patchClipboardWriterForParameterCopy = () => {
 };
 
 const MODAL_STYLE_ID = "scalar-modal-global-overrides";
-const HEADER_HIDDEN_CLASS = "doc-header--hidden-by-modal";
 let isEnsuringModalCss = false;
 let modalEnforceHandle: number | null = null;
-let manualModalVisibilityLock = false;
-
-const toggleHeaderHiddenState = (shouldHide: boolean) => {
-  if (typeof document === "undefined") {
-    return;
-  }
-
-  const header = document.querySelector<HTMLElement>(".doc-header");
-  if (!header) {
-    return;
-  }
-
-  header.classList.toggle(HEADER_HIDDEN_CLASS, shouldHide);
-
-  if (shouldHide) {
-    if (!header.dataset.originalZIndex) {
-      header.dataset.originalZIndex = header.style.zIndex || "";
-    }
-    header.style.setProperty("z-index", "0", "important");
-  } else {
-    header.style.setProperty(
-      "z-index",
-      header.dataset.originalZIndex ?? "",
-      header.dataset.originalZIndex ? undefined : "important"
-    );
-    delete header.dataset.originalZIndex;
-  }
-};
-
-const syncHeaderWithModalPresence = () => {
-  if (typeof document === "undefined" || typeof window === "undefined" || !document.body) {
-    return false;
-  }
-
-  const modals = document.querySelectorAll<HTMLElement>(".scalar-modal-layout");
-  const headlessDialogs = document.querySelectorAll<HTMLElement>(
-    "[role='dialog'][data-headlessui-state='open']"
-  );
-
-  const hasVisibleModal =
-    modals.length > 0
-      ? Array.from(modals).some((modal) => {
-          const target = modal.closest<HTMLElement>(".scalar-modal-layout") ?? modal;
-          const style = window.getComputedStyle(target);
-          const rect = target.getBoundingClientRect();
-          const ariaHidden = target.getAttribute("aria-hidden") === "true";
-
-          if (ariaHidden) {
-            return false;
-          }
-
-          if (
-            style.display === "none" ||
-            style.visibility === "hidden" ||
-            rect.width === 0 ||
-            rect.height === 0
-          ) {
-            const dialog = target.querySelector<HTMLElement>(
-              "[role='dialog'][data-headlessui-state='open']"
-            );
-            return Boolean(dialog);
-          }
-
-          return true;
-        })
-      : headlessDialogs.length > 0;
-
-  if (modals.length === 0 && headlessDialogs.length === 0) {
-    manualModalVisibilityLock = false;
-  }
-
-  const shouldHide = manualModalVisibilityLock || hasVisibleModal;
-  document.body.classList.toggle("has-scalar-modal-open", shouldHide);
-  toggleHeaderHiddenState(shouldHide);
-  return shouldHide;
-};
 
 const GLOBAL_MODAL_CSS = String.raw`
 .scalar-modal-layout {
@@ -788,6 +711,7 @@ const startModalEnforcementLoop = (
   modalEnforceHandle = window.setInterval(() => {
     // 1. Find all modals in the DOM
     const modals = document.querySelectorAll<HTMLElement>(".scalar-modal-layout");
+    let isAnyModalOpen = false;
 
     if (modals.length > 0) {
         modals.forEach((modal) => {
@@ -795,11 +719,25 @@ const startModalEnforcementLoop = (
             if (modal.parentElement !== document.body) {
                 document.body.appendChild(modal);
             }
+            
+            // Check visibility
+            const style = window.getComputedStyle(modal);
+            if (style.display !== "none" && style.visibility !== "hidden" && style.opacity !== "0") {
+                isAnyModalOpen = true;
+            }
         });
     }
 
-    // 2. Sync header/body state based on modal presence
-    syncHeaderWithModalPresence();
+    // 2. Add/Remove class to body to trigger CSS overrides
+    if (isAnyModalOpen) {
+      if (!document.body.classList.contains("has-scalar-modal-open")) {
+          document.body.classList.add("has-scalar-modal-open");
+      }
+    } else {
+      if (document.body.classList.contains("has-scalar-modal-open")) {
+          document.body.classList.remove("has-scalar-modal-open");
+      }
+    }
 
     // 3. Keep applying inline style overrides just in case
     applyInlineModalOverrides(containerEl);
@@ -814,7 +752,6 @@ const stopModalEnforcementLoop = () => {
 
   window.clearInterval(modalEnforceHandle);
   modalEnforceHandle = null;
-  syncHeaderWithModalPresence();
 };
 
 const ensureGlobalModalCss = () => {
@@ -911,8 +848,6 @@ export function ScalarApiReference({
           modal.style.setProperty("right", "0", "important");
           modal.style.setProperty("bottom", "0", "important");
         });
-
-      syncHeaderWithModalPresence();
     });
   };
 
@@ -930,8 +865,6 @@ export function ScalarApiReference({
         }
         modal.classList.remove("scalar-modal-layout--embedded");
       });
-
-    syncHeaderWithModalPresence();
   };
 
   const announceReady = useCallback(() => {
@@ -1310,61 +1243,6 @@ export function ScalarApiReference({
     patchClipboardWriterForParameterCopy();
   }, []);
 
-  useEffect(() => {
-    if (typeof document === "undefined") {
-      return;
-    }
-
-    const handleTestRequestClick = (event: Event) => {
-      const target = event.target;
-      if (!(target instanceof HTMLElement)) {
-        return;
-      }
-
-      if (target.closest(".show-api-client-button")) {
-        manualModalVisibilityLock = true;
-        document.body?.classList.add("has-scalar-modal-open");
-        toggleHeaderHiddenState(true);
-        if (typeof window !== "undefined") {
-          window.setTimeout(() => {
-            syncHeaderWithModalPresence();
-          }, 0);
-        } else {
-          syncHeaderWithModalPresence();
-        }
-      }
-    };
-
-    document.addEventListener("click", handleTestRequestClick, true);
-    return () => {
-      document.removeEventListener("click", handleTestRequestClick, true);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (typeof document === "undefined") {
-      return;
-    }
-
-    const handleScalarOpenClient: EventListener = () => {
-      manualModalVisibilityLock = true;
-      document.body?.classList.add("has-scalar-modal-open");
-      toggleHeaderHiddenState(true);
-      if (typeof window !== "undefined") {
-        window.requestAnimationFrame(() => {
-          syncHeaderWithModalPresence();
-        });
-      } else {
-        syncHeaderWithModalPresence();
-      }
-    };
-
-    document.addEventListener("scalar-open-client", handleScalarOpenClient);
-    return () => {
-      document.removeEventListener("scalar-open-client", handleScalarOpenClient);
-    };
-  }, []);
-
   return (
     <div
       className="scalar-api-reference-wrapper"
@@ -1377,11 +1255,49 @@ export function ScalarApiReference({
           role="status"
           aria-live="polite"
         >
-          <div
-            className="scalar-api-reference-loader__spinner"
-            aria-hidden="true"
-          />
-          <span>در حال بارگذاری مستندات API…</span>
+          <div className="scalar-skeleton-container">
+            <div className="scalar-skeleton-right">
+              <div className="scalar-skeleton-item">
+                <div className="scalar-skeleton-line scalar-skeleton-line--title"></div>
+                <div className="scalar-skeleton-line scalar-skeleton-line--medium"></div>
+                <div className="scalar-skeleton-line scalar-skeleton-line--short"></div>
+              </div>
+              <div className="scalar-skeleton-item">
+                <div className="scalar-skeleton-line scalar-skeleton-line--long"></div>
+                <div className="scalar-skeleton-line scalar-skeleton-line--medium"></div>
+              </div>
+              <div className="scalar-skeleton-item">
+                <div className="scalar-skeleton-line scalar-skeleton-line--short"></div>
+                <div className="scalar-skeleton-line scalar-skeleton-line--long"></div>
+              </div>
+            </div>
+            <div className="scalar-skeleton-left">
+              <div className="scalar-skeleton-box scalar-skeleton-box--request">
+                <div className="scalar-skeleton-box__header">
+                  <div className="scalar-skeleton-line scalar-skeleton-line--method-badge"></div>
+                  <div className="scalar-skeleton-line scalar-skeleton-line--endpoint"></div>
+                </div>
+                <div className="scalar-skeleton-box__body">
+                  <div className="scalar-skeleton-line scalar-skeleton-line--label"></div>
+                  <div className="scalar-skeleton-line scalar-skeleton-line--code"></div>
+                  <div className="scalar-skeleton-line scalar-skeleton-line--code"></div>
+                  <div className="scalar-skeleton-line scalar-skeleton-line--code-short"></div>
+                </div>
+              </div>
+              <div className="scalar-skeleton-box scalar-skeleton-box--response">
+                <div className="scalar-skeleton-box__header">
+                  <div className="scalar-skeleton-line scalar-skeleton-line--title"></div>
+                  <div className="scalar-skeleton-line scalar-skeleton-line--status"></div>
+                </div>
+                <div className="scalar-skeleton-box__body">
+                  <div className="scalar-skeleton-line scalar-skeleton-line--label"></div>
+                  <div className="scalar-skeleton-line scalar-skeleton-line--code"></div>
+                  <div className="scalar-skeleton-line scalar-skeleton-line--code"></div>
+                  <div className="scalar-skeleton-line scalar-skeleton-line--code-short"></div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       ) : null}
       <div
